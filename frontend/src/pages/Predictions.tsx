@@ -79,20 +79,20 @@ export default function Predictions() {
             </div>
             <div className="bg-white rounded-xl border border-slate-200 p-4">
               <p className="text-xs text-slate-400 mb-1">Avg Humidity</p>
-              <p className="text-2xl font-bold text-slate-800">{result.summary.avgHumid}%</p>
+              <p className="text-2xl font-bold text-slate-800">{result.summary.avgHumidity}%</p>
             </div>
             <div className="bg-white rounded-xl border border-slate-200 p-4">
               <p className="text-xs text-slate-400 mb-1">Temp Trend</p>
               <div className="flex items-center gap-2 mt-1">
-                {trendIcon(result.summary.tempTrend)}
-                <span className="text-sm font-semibold capitalize text-slate-700">{result.summary.tempTrend}</span>
+                {trendIcon(result.summary.trend)}
+                <span className="text-sm font-semibold capitalize text-slate-700">{result.summary.trend}</span>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-slate-200 p-4">
               <p className="text-xs text-slate-400 mb-1">Humidity Trend</p>
               <div className="flex items-center gap-2 mt-1">
-                {trendIcon(result.summary.humidTrend)}
-                <span className="text-sm font-semibold capitalize text-slate-700">{result.summary.humidTrend}</span>
+                {trendIcon(result.summary.trend)}
+                <span className="text-sm font-semibold capitalize text-slate-700">{result.summary.trend}</span>
               </div>
             </div>
           </div>
