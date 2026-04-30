@@ -44,8 +44,14 @@ const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: (origin, callback) => {
-      if (!origin || origin.match(/^http:\/\/localhost:\d+$/)) callback(null, true);
-      else callback(new Error('Not allowed by CORS'));
+      // Allow localhost for development and Vercel for production
+      if (!origin || 
+          origin.match(/^http:\/\/localhost:\d+$/) || 
+          origin === 'https://coldchain-sentinel.vercel.app') {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
     },
     methods: ['GET', 'POST'],
     credentials: true,
@@ -57,8 +63,10 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet());
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests from any localhost port (dev) or no origin (Postman/curl)
-    if (!origin || origin.match(/^http:\/\/localhost:\d+$/)) {
+    // Allow requests from any localhost port (dev), no origin (Postman/curl), or Vercel frontend
+    if (!origin || 
+        origin.match(/^http:\/\/localhost:\d+$/) || 
+        origin === 'https://coldchain-sentinel.vercel.app') {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
