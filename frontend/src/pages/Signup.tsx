@@ -91,7 +91,7 @@ export default function Signup() {
   const [showPw, setShowPw]     = useState(false);
 
   const handleGoogleSignup = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/google`;
+    window.location.href = `${import.meta.env.VITE_API_URL || 'https://coldchain-sentinel.onrender.com/api'}/auth/google`;
   };
 
   // Step 2: OTP verification
@@ -112,7 +112,7 @@ export default function Signup() {
     if (password.length < 8) { setError('Password must be at least 8 characters'); return; }
     setLoading(true);
     try {
-      const res: any = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/signup`, {
+      const res: any = await fetch(`${import.meta.env.VITE_API_URL || 'https://coldchain-sentinel.onrender.com/api'}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name.trim(), email, password }),

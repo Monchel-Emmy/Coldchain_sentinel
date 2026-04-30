@@ -29,7 +29,7 @@ export default function Layout() {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    const socket = io(import.meta.env.VITE_WS_URL || 'http://localhost:5000', { transports: ['websocket'] });
+    const socket = io(import.meta.env.VITE_WS_URL || 'https://coldchain-sentinel.onrender.com', { transports: ['websocket'] });
     socketRef.current = socket;
 
     socket.on('connect', () => setConnected(true));

@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AuthUser } from '../types/auth';
 
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const BASE = import.meta.env.VITE_API_URL || 'https://coldchain-sentinel.onrender.com/api';
 
 interface AuthContextType {
   user: AuthUser | null;
