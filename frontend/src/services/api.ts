@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const BASE = import.meta.env.VITE_API_URL || 'https://coldchain-sentinel.onrender.com/api';
 
 function getToken() {
   return localStorage.getItem('cc_token');
