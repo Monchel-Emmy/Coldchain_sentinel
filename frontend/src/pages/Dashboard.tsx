@@ -65,10 +65,9 @@ function FridgeCard({ fridge, liveTemp, liveHumidity }: {
 function RoomSection({ room, fridgeLiveData, liveRoom }: {
   room: StorageRoom;
   fridgeLiveData: Map<string, { temp: number | null; humidity: number | null }>;
-  liveRoom: { airQuality: number; co2: number; temperature: number; humidity: number } | null;
+  liveRoom: { airQuality: number; temperature: number; humidity: number } | null;
 }) {
   const aqi     = liveRoom?.airQuality  ?? room.airQuality  ?? null;
-  const co2     = liveRoom?.co2         ?? room.co2         ?? null;
   const ambTemp = liveRoom?.temperature ?? room.ambientTemp ?? null;
   const ambHum  = liveRoom?.humidity    ?? room.ambientHumidity ?? null;
   const aqiMeta = aqiInfo(aqi);
@@ -100,8 +99,8 @@ function RoomSection({ room, fridgeLiveData, liveRoom }: {
             {aqi !== null && <span className={`text-xs font-medium ${aqiMeta.color}`}>{aqiMeta.label}</span>}
           </div>
           <div>
-            <p className="text-xl font-bold text-purple-400">{co2 ?? '—'}</p>
-            <p className="text-xs text-slate-500 mt-0.5">CO₂ ppm</p>
+            <p className="text-xl font-bold text-purple-400">{aqi ?? '—'}</p>
+            <p className="text-xs text-slate-500 mt-0.5">Air Quality</p>
           </div>
           <div>
             <p className="text-xl font-bold text-orange-300">{ambTemp !== null ? `${ambTemp}°C` : '—'}</p>
@@ -180,7 +179,7 @@ export default function Dashboard() {
                   key={room.id}
                   room={room}
                   fridgeLiveData={fridgeLiveData}
-                  liveRoom={liveRoom ? { airQuality: liveRoom.airQuality, co2: liveRoom.co2, temperature: liveRoom.temperature, humidity: liveRoom.humidity } : null}
+                  liveRoom={liveRoom ? { airQuality: liveRoom.airQuality, temperature: liveRoom.temperature, humidity: liveRoom.humidity } : null}
                 />
               );
             })}

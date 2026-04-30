@@ -31,13 +31,13 @@ export default function Predictions() {
   }, [selectedDevice]);
 
   const chartData = result ? [
-    ...result.historicalSample.map(r => ({
+    ...result.historicalSample.map((r: any) => ({
       time: new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       Temperature: r.temperature,
       Humidity: r.humidity,
       type: 'historical',
     })),
-    ...result.predictions.map(p => ({
+    ...result.predictions.map((p: any) => ({
       time: new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       'Predicted Temp': p.temperature,
       'Predicted Humidity': p.humidity,
@@ -136,7 +136,7 @@ export default function Predictions() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {result.predictions.map((p, i) => (
+                {result.predictions.map((p: any, i: number) => (
                   <tr key={i} className="hover:bg-slate-50">
                     <td className="px-4 py-2 text-slate-600">{new Date(p.timestamp).toLocaleTimeString()}</td>
                     <td className="px-4 py-2 font-medium text-orange-600">{p.temperature}°C</td>

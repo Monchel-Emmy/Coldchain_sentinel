@@ -97,10 +97,33 @@ export interface RoomReading {
   roomId: string;
   healthCenterId: string;
   airQuality: number;
-  co2: number;
   temperature: number;
   humidity: number;
   timestamp: string;
+}
+
+export interface PredictionResult {
+  deviceId: string;
+  deviceName: string;
+  fridgeId: string;
+  fridgeName: string;
+  healthCenterId: string;
+  historicalSample: Array<{
+    timestamp: string;
+    temperature: number;
+    humidity: number;
+  }>;
+  predictions: Array<{
+    timestamp: string;
+    temperature: number;
+    humidity: number;
+  }>;
+  summary: {
+    avgTemp: number;
+    avgHumidity: number;
+    trend: 'rising' | 'falling' | 'stable';
+    confidence: number;
+  };
 }
 
 export interface StorageRoom {

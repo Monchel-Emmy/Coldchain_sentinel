@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, Thermometer, Droplets, Cpu, Power, Fan, SlidersHorizontal } from 'lucide-react';
+import { Plus, Pencil, Trash2, Thermometer, Power, Fan, SlidersHorizontal } from 'lucide-react';
 import { api } from '../services/api';
 import { Fridge, HealthCenter, Device, DeviceControl } from '../types';
 import Modal from '../components/Modal';
@@ -156,7 +156,7 @@ export default function Fridges() {
                 <tr key={fridge.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3">
                     <p className="font-medium text-slate-800">{fridge.name}</p>
-                    <p className="text-xs text-slate-400">{fridge.serialNumber || fridge.model}</p>
+                    <p className="text-xs text-slate-400">{fridge.serialNumber || fridge.modelName}</p>
                   </td>
                   <td className="px-4 py-3 text-slate-600 text-xs">{fridge.healthCenterName || fridge.healthCenterId}</td>
                   <td className="px-4 py-3">
