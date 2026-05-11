@@ -18,6 +18,7 @@
 
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <ArduinoJson.h>
 #include <DHT.h>
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
@@ -65,17 +66,20 @@ DHT dhtRoom2(DHT_ROOM2_PIN, DHTTYPE);
 // =========================
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-// =========================
-// TARGET TEMPERATURE RANGES
-// =========================
-
-// Room 1 (Vaccine fridge simulation)
+// Target Temps
 float room1Min = 2.0;
 float room1Max = 8.0;
-
-// Room 2 (Frozen storage simulation)
 float room2Min = 0.0;
 float room2Max = 2.0;
+
+// Manual Controls from Web
+bool r1Sys = true;
+bool r1Fan = false;
+bool r1Comp = true;
+
+bool r2Sys = true;
+bool r2Fan = false;
+bool r2Comp = true;
 
 // =========================
 // VARIABLES
@@ -176,8 +180,28 @@ void sendTelemetryToBackend(float realT1, float realH1, float realT2, float real
     int httpResponseCode = http.POST(payload);
     
     if(httpResponseCode > 0){
-      Serial.print("Backend Response: ");
-      Serial.println(httpResponseCode);
+      String response = http.getString();
+      
+      // Parse JSON from Backend
+      DynamicJsonDocument doc(1024);
+      DeserializationError error = deserializeJson(doc, response);
+      
+      if (!error && doc["config"]) {
+        if (doc["config"]["192.168.1.10"]) {
+          room1Min = doc["config"]["192.168.1.10"]["min"];
+          room1Max = doc["config"]["192.168.1.10"]["max"];
+          r1Sys    = doc["config"]["192.168.1.10"]["sys"];
+          r1Fan    = doc["config"]["192.168.1.10"]["fan"];
+          r1Comp   = doc["config"]["192.168.1.10"]["comp"];
+        }
+        if (doc["config"]["192.168.1.11"]) {
+          room2Min = doc["config"]["192.168.1.11"]["min"];
+          room2Max = doc["config"]["192.168.1.11"]["max"];
+          r2Sys    = doc["config"]["192.168.1.11"]["sys"];
+          r2Fan    = doc["config"]["192.168.1.11"]["fan"];
+          r2Comp   = doc["config"]["192.168.1.11"]["comp"];
+        }
+      }
     } else {
       Serial.print("Error sending to backend: ");
       Serial.println(httpResponseCode);
@@ -261,41 +285,42 @@ void loop() {
   Serial.println(airQuality);
 
   // =========================
-  // ROOM 1 CONTROL
+  // ROOM 1 CONTROL (Refrigerator)
   // =========================
 
-  if (temp1 > room1Max) {
-
-    digitalWrite(COOL_FAN_ROOM1, HIGH);
-
+  if (!r1Sys) {
+    digitalWrite(COOL_FAN_ROOM1, LOW); // System off
   } else {
-
-    digitalWrite(COOL_FAN_ROOM1, LOW);
+    // If manual Fan is ON, or (Compressor is ON and temp is too high)
+    if (r1Fan || (r1Comp && temp1 > room1Max)) {
+      digitalWrite(COOL_FAN_ROOM1, HIGH);
+    } else {
+      digitalWrite(COOL_FAN_ROOM1, LOW);
+    }
   }
 
   // =========================
-  // ROOM 2 CONTROL
+  // ROOM 2 CONTROL (Freezer)
   // =========================
 
-  if (temp2 > room2Max) {
-
-    // Too hot -> cooling ON
-    digitalWrite(COOL_FAN_ROOM2, HIGH);
-    digitalWrite(WARM_FAN_ROOM2, LOW);
-
-  }
-  else if (temp2 < room2Min) {
-
-    // Too cold -> warming ON
-    digitalWrite(COOL_FAN_ROOM2, LOW);
-    digitalWrite(WARM_FAN_ROOM2, HIGH);
-
-  }
-  else {
-
-    // Safe range
+  if (!r2Sys) {
     digitalWrite(COOL_FAN_ROOM2, LOW);
     digitalWrite(WARM_FAN_ROOM2, LOW);
+  } else {
+    bool coolOn = r2Fan; // Fan switch forces circulation (cooling fan)
+    bool warmOn = false;
+
+    if (r2Comp) {
+      if (temp2 > room2Max) {
+        coolOn = true;
+        warmOn = false;
+      } else if (temp2 < room2Min) {
+        coolOn = false;
+        warmOn = true;
+      }
+    }
+    digitalWrite(COOL_FAN_ROOM2, coolOn ? HIGH : LOW);
+    digitalWrite(WARM_FAN_ROOM2, warmOn ? HIGH : LOW);
   }
 
   // =========================
@@ -340,6 +365,11 @@ void loop() {
     danger = true;
     alertMessage = "BAD AIR";
   }
+  
+  if (!r1Sys && !r2Sys) {
+    alertMessage = "SYS STOPPED";
+    danger = false; // Override danger LED if purposefully stopped
+  }
 
   // =========================
   // LED STATUS
@@ -365,57 +395,66 @@ void loop() {
   Serial.println(alertMessage);
 
   // =========================
-  // LCD SCREEN 1
+  // LCD DISPLAY
   // =========================
 
-  lcd.clear();
+  if (!r1Sys && !r2Sys) {
+    // Entire system is stopped
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("SYSTEM STOPPED");
+    lcd.setCursor(0, 1);
+    lcd.print("Waiting...");
+    delay(4800);
+  } else {
+    // =========================
+    // LCD SCREEN 1
+    // =========================
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    if (!r1Sys) { lcd.print("R1:OFF"); }
+    else { lcd.print("R1:"); lcd.print(temp1, 1); lcd.print("C"); }
+    
+    lcd.setCursor(8, 0);
+    if (!r2Sys) { lcd.print("R2:OFF"); }
+    else { lcd.print("R2:"); lcd.print(temp2, 1); lcd.print("C"); }
+    
+    lcd.setCursor(0, 1);
+    if (!r1Sys) { lcd.print("H1:OFF"); }
+    else { lcd.print("H1:"); lcd.print(hum1, 0); lcd.print("%"); }
+    
+    delay(1600); // 1.6 seconds
 
-  lcd.setCursor(0, 0);
-  lcd.print("R1:");
-  lcd.print(temp1, 1);
-  lcd.print((char)223);
-  lcd.print("C");
+    // =========================
+    // LCD SCREEN 2
+    // =========================
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    if (!r2Sys) { lcd.print("H2:OFF"); }
+    else { lcd.print("H2:"); lcd.print(hum2, 0); lcd.print("%"); }
+    
+    lcd.setCursor(0, 1);
+    lcd.print("AQI: ");
+    lcd.print(airQuality);
 
-  lcd.setCursor(0, 1);
-  lcd.print("H1:");
-  lcd.print(hum1, 0);
-  lcd.print("%");
+    delay(1600); // 1.6 seconds
 
-  delay(1600); // 1.6 seconds
+    // =========================
+    // LCD SCREEN 3
+    // =========================
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    if (danger) {
+      lcd.print("! DANGER !");
+    } else {
+      lcd.print("Status: NORMAL");
+    }
+    
+    lcd.setCursor(0, 1);
+    lcd.print(alertMessage);
 
-  // =========================
-  // LCD SCREEN 2
-  // =========================
-
-  lcd.clear();
-
-  lcd.setCursor(0, 0);
-  lcd.print("R2:");
-  lcd.print(temp2, 1);
-  lcd.print((char)223);
-  lcd.print("C");
-
-  lcd.setCursor(0, 1);
-  lcd.print("H2:");
-  lcd.print(hum2, 0);
-  lcd.print("%");
-
-  delay(1600); // 1.6 seconds
-
-  // =========================
-  // LCD SCREEN 3
-  // =========================
-
-  lcd.clear();
-
-  lcd.setCursor(0, 0);
-  lcd.print("Air:");
-  lcd.print(airQuality);
-
-  lcd.setCursor(0, 1);
-  lcd.print(alertMessage);
-
-  delay(1600); // 1.6 seconds
+    delay(1600); // 1.6 seconds
+  }
   
   // SEND REAL-TIME DATA TO DASHBOARD
   sendTelemetryToBackend(realTemp1, hum1, realTemp2, hum2, temp1, hum1, temp2, hum2, airQuality);

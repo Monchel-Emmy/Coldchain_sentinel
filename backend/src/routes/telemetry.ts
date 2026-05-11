@@ -6,11 +6,14 @@ import { RoomReading as RoomReadingModel } from '../models/RoomReading';
 import { 
   devices as memDevices, 
   storageRooms as memRooms, 
+  deviceControls as memDeviceControls,
+  fridges as memFridges,
   pushReading, 
   pushRoomReading, 
   latestReadings, 
   latestRoomReadings 
 } from '../data/mockStore';
+import { Fridge as FridgeModel } from '../models/Fridge';
 
 const router = Router();
 
@@ -91,6 +94,8 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     // 2. Process Fridges (Temperature / Humidity)
+    const configPayload: Record<string, any> = {};
+
     if (Array.isArray(fridges)) {
       for (const fridgeData of fridges) {
         if (!fridgeData.ip) continue;
@@ -98,16 +103,18 @@ router.post('/', async (req: Request, res: Response) => {
         let deviceId = '';
         let fridgeId = '';
         let healthCenterId = '';
+        let dbDevice: any = null;
+        let memDevice: any = null;
 
         if (isConnected()) {
-          const dbDevice = await DeviceModel.findOne({ ipAddress: fridgeData.ip }).lean().catch(() => null);
+          dbDevice = await DeviceModel.findOne({ ipAddress: fridgeData.ip }).lean().catch(() => null);
           if (dbDevice) {
             deviceId = String(dbDevice._id);
             fridgeId = String(dbDevice.fridgeId);
             healthCenterId = String(dbDevice.healthCenterId);
           }
         } else {
-          const memDevice = memDevices.find(d => d.ipAddress === fridgeData.ip);
+          memDevice = memDevices.find(d => d.ipAddress === fridgeData.ip);
           if (memDevice) {
             deviceId = memDevice.id;
             fridgeId = memDevice.fridgeId;
@@ -132,6 +139,31 @@ router.post('/', async (req: Request, res: Response) => {
           if (io) {
             io.emit('reading', reading);
           }
+
+          let min = 2.0, max = 8.0, sys = true, fan = false, comp = true;
+          if (isConnected() && dbDevice) {
+            // @ts-ignore
+            sys = dbDevice.systemEnabled ?? true;
+            // @ts-ignore
+            fan = dbDevice.fanEnabled ?? false;
+            // @ts-ignore
+            comp = dbDevice.compressorEnabled ?? true;
+            const dbFridge = await FridgeModel.findById(fridgeId).lean().catch(() => null);
+            if (dbFridge) {
+              min = dbFridge.targetTempMin;
+              max = dbFridge.targetTempMax;
+            }
+          } else if (!isConnected() && memDevice) {
+            const ctrl = memDeviceControls.find(c => c.deviceId === deviceId);
+            if (ctrl) {
+              sys = ctrl.systemEnabled; fan = ctrl.fanEnabled; comp = ctrl.compressorEnabled;
+            }
+            const f = memFridges.find(f => f.id === fridgeId);
+            if (f) {
+              min = f.targetTempMin; max = f.targetTempMax;
+            }
+          }
+          configPayload[fridgeData.ip] = { min, max, sys, fan, comp };
         }
       }
     }
@@ -141,7 +173,7 @@ router.post('/', async (req: Request, res: Response) => {
        io.emit('stats', { onlineDevices: memDevices.filter(d => d.status === 'online').length, activeAlerts: 0 });
     }
 
-    return res.status(200).json({ success: true, message: 'Telemetry received successfully' });
+    return res.status(200).json({ success: true, message: 'Telemetry received successfully', config: configPayload });
   } catch (error) {
     console.error('Error processing telemetry:', error);
     return res.status(500).json({ error: 'Internal server error' });
