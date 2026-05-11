@@ -22,13 +22,15 @@ const fridgeTypeLabel: Record<string, string> = {
   refrigerator: 'Refrigerator', freezer: 'Freezer', cold_room: 'Cold Room',
 };
 
-function FridgeCard({ fridge, liveTemp, liveHumidity }: {
+function FridgeCard({ fridge, liveTemp, liveHumidity, liveTimestamp }: {
   fridge: NonNullable<StorageRoom['fridges']>[number];
   liveTemp: number | null;
   liveHumidity: number | null;
+  liveTimestamp: string | null;
 }) {
   const temp   = liveTemp ?? fridge.currentTemp;
   const hum    = liveHumidity ?? fridge.currentHumidity;
+  const ts     = liveTimestamp ?? fridge.lastUpdated;
   const tempOk = temp !== null ? temp >= fridge.targetTempMin && temp <= fridge.targetTempMax : null;
   return (
     <div className={`bg-slate-700/60 rounded-xl p-4 flex flex-col gap-3 border ${tempOk === false ? 'border-red-500/70' : 'border-slate-600/30'}`}>
@@ -56,7 +58,7 @@ function FridgeCard({ fridge, liveTemp, liveHumidity }: {
       </div>
       <div className="flex items-center justify-between">
         {tempOk === false && <span className="text-xs bg-red-500/80 text-white px-2 py-0.5 rounded-full font-medium">⚠ Out of range</span>}
-        <p className="text-xs text-slate-500 ml-auto">{fridge.lastUpdated ? new Date(fridge.lastUpdated).toLocaleTimeString() : '—'}</p>
+        <p className="text-xs text-slate-500 ml-auto">{ts ? new Date(ts).toLocaleTimeString() : '—'}</p>
       </div>
     </div>
   );
@@ -64,7 +66,7 @@ function FridgeCard({ fridge, liveTemp, liveHumidity }: {
 
 function RoomSection({ room, fridgeLiveData, liveRoom }: {
   room: StorageRoom;
-  fridgeLiveData: Map<string, { temp: number | null; humidity: number | null }>;
+  fridgeLiveData: Map<string, { temp: number | null; humidity: number | null; timestamp: string | null }>;
   liveRoom: { airQuality: number; temperature: number; humidity: number } | null;
 }) {
   const aqi     = liveRoom?.airQuality  ?? room.airQuality  ?? null;
@@ -115,7 +117,7 @@ function RoomSection({ room, fridgeLiveData, liveRoom }: {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {(room.fridges ?? []).map(fridge => {
           const live = fridgeLiveData.get(fridge.device?.id ?? '');
-          return <FridgeCard key={fridge.id} fridge={fridge} liveTemp={live?.temp ?? null} liveHumidity={live?.humidity ?? null} />;
+          return <FridgeCard key={fridge.id} fridge={fridge} liveTemp={live?.temp ?? null} liveHumidity={live?.humidity ?? null} liveTimestamp={live?.timestamp ?? null} />;
         })}
         {(room.fridges ?? []).length === 0 && (
           <p className="text-xs text-slate-500 col-span-2 text-center py-4">No fridges assigned to this room.</p>
@@ -143,8 +145,8 @@ export default function Dashboard() {
 
   if (loading) return <PageLoader message="Fetching cold chain data..." />;
 
-  const fridgeLiveData = new Map<string, { temp: number | null; humidity: number | null }>();
-  readings.forEach((r, deviceId) => fridgeLiveData.set(deviceId, { temp: r.temperature, humidity: r.humidity }));
+  const fridgeLiveData = new Map<string, { temp: number | null; humidity: number | null; timestamp: string | null }>();
+  readings.forEach((r, deviceId) => fridgeLiveData.set(deviceId, { temp: r.temperature, humidity: r.humidity, timestamp: r.timestamp }));
 
   return (
     <div className="space-y-6">

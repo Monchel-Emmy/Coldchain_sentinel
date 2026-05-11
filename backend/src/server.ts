@@ -22,6 +22,7 @@ import alertRoutes from './routes/alerts';
 import userRoutes from './routes/users';
 import roleRoutes from './routes/roles';
 import predictionRoutes from './routes/predictions';
+import telemetryRoutes from './routes/telemetry';
 
 import { devices as memDevices, generateReading, pushReading, latestReadings, alerts as memAlerts, Alert as AlertType, fridges as memFridges, storageRooms, generateRoomReading, pushRoomReading, latestRoomReadings } from './data/mockStore';
 import { isConnected } from './db';
@@ -58,6 +59,8 @@ const io = new Server(server, {
   }
 });
 
+app.set('io', io);
+
 const PORT = process.env.PORT || 5000;
 
 app.use(helmet());
@@ -90,6 +93,7 @@ app.use('/api/alerts', alertRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/predictions', predictionRoutes);
+app.use('/api/telemetry', telemetryRoutes);
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() }));
 
@@ -154,8 +158,12 @@ async function runSimulation() {
   }
 }
 
-// Run simulation every 5 seconds
-setInterval(() => { runSimulation().catch(console.error); }, 5000);
+// Run simulation every 5 seconds unless explicitly disabled
+if (process.env.SIMULATION_ENABLED !== 'false') {
+  setInterval(() => { runSimulation().catch(console.error); }, 5000);
+} else {
+  console.log('📡 Fake data simulation is DISABLED. Waiting for real ESP32 telemetry...');
+}
 
 io.on('connection', socket => {
   console.log(`[WS] Client connected: ${socket.id}`);
