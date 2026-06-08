@@ -96,13 +96,13 @@ export async function seedIfEmpty(): Promise<void> {
 
   // ── Vaccines ───────────────────────────────────────────────────────────────
   await Vaccine.insertMany([
-    { name: 'BCG',                type: 'BCG',          manufacturer: 'Serum Institute of India', batchNumber: 'BCG-2024-001',   quantity: 500, unit: 'doses',  fridgeId: f1._id, healthCenterId: hc1._id, expiryDate: new Date('2025-12-31'), storageRequirements: { tempMin: 2,   tempMax: 8,   humidityMin: 40, humidityMax: 70 }, status: 'compliant' },
-    { name: 'Oral Polio (OPV)',   type: 'Polio',        manufacturer: 'Sanofi Pasteur',           batchNumber: 'POL-2024-045',   quantity: 300, unit: 'doses',  fridgeId: f1._id, healthCenterId: hc1._id, expiryDate: new Date('2025-06-30'), storageRequirements: { tempMin: 2,   tempMax: 8,   humidityMin: 40, humidityMax: 70 }, status: 'compliant' },
-    { name: 'DTC-HepB-Hib (Penta)',type:'Pentavalent',  manufacturer: 'GSK',                      batchNumber: 'PENTA-2024-012', quantity: 200, unit: 'vials',  fridgeId: f1._id, healthCenterId: hc1._id, expiryDate: new Date('2025-09-15'), storageRequirements: { tempMin: 2,   tempMax: 8,   humidityMin: 40, humidityMax: 70 }, status: 'at_risk'  },
-    { name: 'Measles Vaccine',    type: 'Measles',      manufacturer: 'Merck',                    batchNumber: 'MEA-2024-007',   quantity: 150, unit: 'doses',  fridgeId: f2._id, healthCenterId: hc1._id, expiryDate: new Date('2026-03-20'), storageRequirements: { tempMin: -25, tempMax: -15, humidityMin: 20, humidityMax: 50 }, status: 'compliant' },
-    { name: 'Meningitis A (MenA)',type: 'MenA',         manufacturer: 'Serum Institute of India', batchNumber: 'MENA-2024-003',  quantity: 400, unit: 'doses',  fridgeId: f3._id, healthCenterId: hc2._id, expiryDate: new Date('2025-11-10'), storageRequirements: { tempMin: 2,   tempMax: 8,   humidityMin: 40, humidityMax: 70 }, status: 'at_risk'  },
-    { name: 'Yellow Fever',       type: 'Yellow Fever', manufacturer: 'Sanofi Pasteur',           batchNumber: 'YF-2024-022',    quantity: 180, unit: 'doses',  fridgeId: f4._id, healthCenterId: hc2._id, expiryDate: new Date('2025-08-01'), storageRequirements: { tempMin: -25, tempMax: -15, humidityMin: 20, humidityMax: 50 }, status: 'compliant' },
-    { name: 'Hepatitis B (HepB)', type: 'HepB',         manufacturer: 'Bio Farma',                batchNumber: 'HEPB-2024-019',  quantity: 250, unit: 'doses',  fridgeId: f5._id, healthCenterId: hc3._id, expiryDate: new Date('2025-08-25'), storageRequirements: { tempMin: 2,   tempMax: 8,   humidityMin: 40, humidityMax: 70 }, status: 'compliant' },
+    { name: 'BCG',                type: 'BCG',          manufacturer: 'Serum Institute of India', batchNumber: 'BCG-2024-001',   quantity: 500, unit: 'doses',  fridgeId: f1._id, healthCenterId: hc1._id, expiryDate: new Date('2027-12-31'), storageRequirements: { tempMin: 2,   tempMax: 8,   humidityMin: 40, humidityMax: 70 }, status: 'compliant' },
+    { name: 'Oral Polio (OPV)',   type: 'Polio',        manufacturer: 'Sanofi Pasteur',           batchNumber: 'POL-2024-045',   quantity: 300, unit: 'doses',  fridgeId: f1._id, healthCenterId: hc1._id, expiryDate: new Date('2027-06-30'), storageRequirements: { tempMin: 2,   tempMax: 8,   humidityMin: 40, humidityMax: 70 }, status: 'compliant' },
+    { name: 'DTC-HepB-Hib (Penta)',type:'Pentavalent',  manufacturer: 'GSK',                      batchNumber: 'PENTA-2024-012', quantity: 200, unit: 'vials',  fridgeId: f1._id, healthCenterId: hc1._id, expiryDate: new Date('2027-09-15'), storageRequirements: { tempMin: 2,   tempMax: 8,   humidityMin: 40, humidityMax: 70 }, status: 'compliant' },
+    { name: 'Measles Vaccine',    type: 'Measles',      manufacturer: 'Merck',                    batchNumber: 'MEA-2024-007',   quantity: 150, unit: 'doses',  fridgeId: f2._id, healthCenterId: hc1._id, expiryDate: new Date('2028-03-20'), storageRequirements: { tempMin: -25, tempMax: -15, humidityMin: 20, humidityMax: 50 }, status: 'compliant' },
+    { name: 'Meningitis A (MenA)',type: 'MenA',         manufacturer: 'Serum Institute of India', batchNumber: 'MENA-2024-003',  quantity: 400, unit: 'doses',  fridgeId: f3._id, healthCenterId: hc2._id, expiryDate: new Date('2027-11-10'), storageRequirements: { tempMin: 2,   tempMax: 8,   humidityMin: 40, humidityMax: 70 }, status: 'compliant' },
+    { name: 'Yellow Fever',       type: 'Yellow Fever', manufacturer: 'Sanofi Pasteur',           batchNumber: 'YF-2024-022',    quantity: 180, unit: 'doses',  fridgeId: f4._id, healthCenterId: hc2._id, expiryDate: new Date('2027-08-01'), storageRequirements: { tempMin: -25, tempMax: -15, humidityMin: 20, humidityMax: 50 }, status: 'compliant' },
+    { name: 'Hepatitis B (HepB)', type: 'HepB',         manufacturer: 'Bio Farma',                batchNumber: 'HEPB-2024-019',  quantity: 250, unit: 'doses',  fridgeId: f5._id, healthCenterId: hc3._id, expiryDate: new Date('2027-08-25'), storageRequirements: { tempMin: 2,   tempMax: 8,   humidityMin: 40, humidityMax: 70 }, status: 'compliant' },
   ]);
 
   // ── Alerts ─────────────────────────────────────────────────────────────────
@@ -118,7 +118,8 @@ export async function seedIfEmpty(): Promise<void> {
       email: 'admin@coldchain-sentinel.io', 
       password: await (await import('bcryptjs')).default.hash('Admin@1234', 10),  
       roleId: roleAdmin._id,   
-      status: 'active' 
+      status: 'active',
+      emailVerified: true,
     }, { upsert: true, new: true }),
     User.findOneAndUpdate({ email: 'james@city-health.io' }, { 
       name: 'Dr. James Ouedraogo', 
@@ -126,7 +127,8 @@ export async function seedIfEmpty(): Promise<void> {
       password: await (await import('bcryptjs')).default.hash('Manager@1234', 10), 
       roleId: roleManager._id, 
       healthCenterId: hc1._id, 
-      status: 'active' 
+      status: 'active',
+      emailVerified: true,
     }, { upsert: true, new: true }),
     User.findOneAndUpdate({ email: 'marie@north-dispensary.io' }, { 
       name: 'Nurse Marie Sawadogo',
@@ -134,7 +136,8 @@ export async function seedIfEmpty(): Promise<void> {
       password: await (await import('bcryptjs')).default.hash('Nurse@1234', 10),   
       roleId: roleNurse._id,   
       healthCenterId: hc2._id, 
-      status: 'active' 
+      status: 'active',
+      emailVerified: true,
     }, { upsert: true, new: true }),
   ]);
 

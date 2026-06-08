@@ -26,11 +26,11 @@
 // =========================
 // WIFI CONFIGURATION
 // =========================
-const char* ssid = "Murenzi";
-const char* password = "new2o@2E";
+const char* ssid = "Monchel";
+const char* password = "Monchel1236";
 
 // REPLACE "YOUR_COMPUTER_IP_ADDRESS" with the local IP of the PC running the backend
-const char* backendUrl = "http://192.168.1.103:5000/api/telemetry";
+const char* backendUrl = "http://192.168.142.125:5000/api/telemetry";
 
 // =========================
 // DHT CONFIGURATION
@@ -157,50 +157,66 @@ void sendTelemetryToBackend(float realT1, float realH1, float realT2, float real
     http.begin(backendUrl);
     http.addHeader("Content-Type", "application/json");
 
+    // Average of both DHT sensors = ambient room conditions
     float avgTemp = (realT1 + realT2) / 2.0;
-    float avgHum = (realH1 + realH2) / 2.0;
+    float avgHum  = (realH1 + realH2) / 2.0;
 
-    // Construct the JSON payload mapping your sensors to the dashboard IPs
-    String payload = "{\"secret\":\"supersecretkey123\",\"room\":{\"ip\":\"192.168.1.20\",\"airQuality\":";
-    payload += String(aqi);
-    payload += ",\"ambientTemp\":";
-    payload += String(avgTemp, 1);
-    payload += ",\"ambientHum\":";
-    payload += String(avgHum, 0);
-    payload += "},\"fridges\":[{\"ip\":\"192.168.1.10\",\"temperature\":";
-    payload += String(t1, 1);
-    payload += ",\"humidity\":";
-    payload += String(h1, 0);
-    payload += "},{\"ip\":\"192.168.1.11\",\"temperature\":";
-    payload += String(t2, 1);
-    payload += ",\"humidity\":";
-    payload += String(h2, 0);
-    payload += "}]}";
+    // Build JSON payload
+    // room.ip        → matches StorageRoom.ipAddress in DB (192.168.1.20)
+    // fridges[0].ip  → matches Device.ipAddress for Main Fridge (192.168.1.10)
+    // fridges[1].ip  → matches Device.ipAddress for Vaccine Freezer (192.168.1.11)
+    String payload = "{";
+    payload += "\"secret\":\"supersecretkey123\",";
+    payload += "\"room\":{";
+    payload += "\"ip\":\"192.168.1.20\",";
+    payload += "\"airQuality\":" + String(aqi) + ",";
+    payload += "\"ambientTemp\":" + String(avgTemp, 1) + ",";
+    payload += "\"ambientHum\":"  + String(avgHum,  1);
+    payload += "},";
+    payload += "\"fridges\":[";
+    payload += "{\"ip\":\"192.168.1.10\",\"temperature\":" + String(t1, 1) + ",\"humidity\":" + String(h1, 1) + "},";
+    payload += "{\"ip\":\"192.168.1.11\",\"temperature\":" + String(t2, 1) + ",\"humidity\":" + String(h2, 1) + "}";
+    payload += "]}";
 
+    Serial.println("Sending telemetry to backend...");
     int httpResponseCode = http.POST(payload);
     
     if(httpResponseCode > 0){
+      Serial.print("Telemetry HTTP response code: ");
+      Serial.println(httpResponseCode);
+
       String response = http.getString();
+      Serial.print("Backend response: ");
+      Serial.println(response);
       
       // Parse JSON from Backend
       DynamicJsonDocument doc(1024);
       DeserializationError error = deserializeJson(doc, response);
       
-      if (!error && doc["config"]) {
-        if (doc["config"]["192.168.1.10"]) {
-          room1Min = doc["config"]["192.168.1.10"]["min"];
-          room1Max = doc["config"]["192.168.1.10"]["max"];
-          r1Sys    = doc["config"]["192.168.1.10"]["sys"];
-          r1Fan    = doc["config"]["192.168.1.10"]["fan"];
-          r1Comp   = doc["config"]["192.168.1.10"]["comp"];
+      if (!error) {
+        Serial.println("Telemetry sent successfully and response parsed.");
+        if (doc["config"]) {
+          Serial.println("Backend returned configuration updates.");
+          if (doc["config"]["192.168.1.10"]) {
+            room1Min = doc["config"]["192.168.1.10"]["min"];
+            room1Max = doc["config"]["192.168.1.10"]["max"];
+            r1Sys    = doc["config"]["192.168.1.10"]["sys"];
+            r1Fan    = doc["config"]["192.168.1.10"]["fan"];
+            r1Comp   = doc["config"]["192.168.1.10"]["comp"];
+          }
+          if (doc["config"]["192.168.1.11"]) {
+            room2Min = doc["config"]["192.168.1.11"]["min"];
+            room2Max = doc["config"]["192.168.1.11"]["max"];
+            r2Sys    = doc["config"]["192.168.1.11"]["sys"];
+            r2Fan    = doc["config"]["192.168.1.11"]["fan"];
+            r2Comp   = doc["config"]["192.168.1.11"]["comp"];
+          }
+        } else {
+          Serial.println("No config object returned by backend.");
         }
-        if (doc["config"]["192.168.1.11"]) {
-          room2Min = doc["config"]["192.168.1.11"]["min"];
-          room2Max = doc["config"]["192.168.1.11"]["max"];
-          r2Sys    = doc["config"]["192.168.1.11"]["sys"];
-          r2Fan    = doc["config"]["192.168.1.11"]["fan"];
-          r2Comp   = doc["config"]["192.168.1.11"]["comp"];
-        }
+      } else {
+        Serial.print("Failed to parse backend response: ");
+        Serial.println(error.c_str());
       }
     } else {
       Serial.print("Error sending to backend: ");
@@ -395,65 +411,74 @@ void loop() {
   Serial.println(alertMessage);
 
   // =========================
-  // LCD DISPLAY
+  // LCD DISPLAY — 4 screens, 4 seconds each
   // =========================
 
   if (!r1Sys && !r2Sys) {
-    // Entire system is stopped
+    // ── System stopped ──────────────────────────
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("SYSTEM STOPPED");
     lcd.setCursor(0, 1);
-    lcd.print("Waiting...");
-    delay(4800);
+    lcd.print("All units OFF");
+    delay(4000);
+
   } else {
-    // =========================
-    // LCD SCREEN 1
-    // =========================
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    if (!r1Sys) { lcd.print("R1:OFF"); }
-    else { lcd.print("R1:"); lcd.print(temp1, 1); lcd.print("C"); }
-    
-    lcd.setCursor(8, 0);
-    if (!r2Sys) { lcd.print("R2:OFF"); }
-    else { lcd.print("R2:"); lcd.print(temp2, 1); lcd.print("C"); }
-    
-    lcd.setCursor(0, 1);
-    if (!r1Sys) { lcd.print("H1:OFF"); }
-    else { lcd.print("H1:"); lcd.print(hum1, 0); lcd.print("%"); }
-    
-    delay(1600); // 1.6 seconds
 
-    // =========================
-    // LCD SCREEN 2
-    // =========================
+    // ── Screen 1: Fridge 1 temp & humidity ──────
     lcd.clear();
     lcd.setCursor(0, 0);
-    if (!r2Sys) { lcd.print("H2:OFF"); }
-    else { lcd.print("H2:"); lcd.print(hum2, 0); lcd.print("%"); }
-    
+    lcd.print("Fridge 1");
+    if (!r1Sys) {
+      lcd.setCursor(0, 1);
+      lcd.print("System OFF");
+    } else {
+      lcd.setCursor(0, 1);
+      lcd.print("T:");
+      lcd.print(temp1, 1);
+      lcd.print("C H:");
+      lcd.print(hum1, 0);
+      lcd.print("%");
+    }
+    delay(4000);
+
+    // ── Screen 2: Fridge 2 temp & humidity ──────
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Fridge 2");
+    if (!r2Sys) {
+      lcd.setCursor(0, 1);
+      lcd.print("System OFF");
+    } else {
+      lcd.setCursor(0, 1);
+      lcd.print("T:");
+      lcd.print(temp2, 1);
+      lcd.print("C H:");
+      lcd.print(hum2, 0);
+      lcd.print("%");
+    }
+    delay(4000);
+
+    // ── Screen 3: Air quality (MQ135 raw ADC) ───
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Air Quality");
     lcd.setCursor(0, 1);
-    lcd.print("AQI: ");
+    lcd.print("MQ135: ");
     lcd.print(airQuality);
+    delay(4000);
 
-    delay(1600); // 1.6 seconds
-
-    // =========================
-    // LCD SCREEN 3
-    // =========================
+    // ── Screen 4: System status / alert ─────────
     lcd.clear();
     lcd.setCursor(0, 0);
     if (danger) {
-      lcd.print("! DANGER !");
+      lcd.print("!! ALERT !!");
     } else {
-      lcd.print("Status: NORMAL");
+      lcd.print("Status: OK");
     }
-    
     lcd.setCursor(0, 1);
     lcd.print(alertMessage);
-
-    delay(1600); // 1.6 seconds
+    delay(4000);
   }
   
   // SEND REAL-TIME DATA TO DASHBOARD

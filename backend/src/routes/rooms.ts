@@ -4,8 +4,8 @@ import { HealthCenter } from '../models/HealthCenter';
 import { Fridge }       from '../models/Fridge';
 import { Device }       from '../models/Device';
 import { RoomReading }  from '../models/RoomReading';
+import { SensorReading } from '../models/SensorReading';
 import { authenticate, getHCFilter, AuthRequest } from '../middleware/auth';
-import { latestReadings, latestRoomReadings } from '../data/mockStore';
 
 const router = Router();
 router.use(authenticate);
@@ -59,21 +59,19 @@ router.get('/', async (req, res) => {
 
     const fridgesWithData = await Promise.all(roomFridges.map(async f => {
       const dev = await Device.findOne({ fridgeId: f._id }).lean();
-      // Use device's MongoDB _id as key for live readings
-      const reading = dev ? latestReadings.get(String(dev._id)) : null;
+      // Only show reading if device is online — offline devices show —
+      const reading = (dev && dev.status === 'online')
+        ? await SensorReading.findOne({ deviceId: dev._id }).sort({ timestamp: -1 }).lean()
+        : null;
       return enrichFridge(f, dev, reading);
     }));
 
-    // Get latest room reading from MongoDB (most recent by timestamp)
+    // Get latest room reading from DB
     const latestRoomReading = await RoomReading.findOne({ roomId: room._id })
       .sort({ timestamp: -1 })
       .lean();
 
-    // Also check in-memory cache (updated every 5s by simulation)
-    const memReading = latestRoomReadings.get(String(room._id));
-
-    // Use whichever is more recent
-    const roomReading = latestRoomReading || memReading;
+    const roomReading = latestRoomReading;
 
     return {
       id:              String(room._id),

@@ -4,8 +4,9 @@ export async function connectDB(): Promise<void> {
   // Read AFTER dotenv.config() has run in server.ts
   const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/coldchain-sentinel';
   try {
+    console.log('Using Mongo URI:', MONGO_URI);
     await mongoose.connect(MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
     });
     console.log(`✅ MongoDB connected: ${MONGO_URI.replace(/:([^:@]+)@/, ':****@')}`);

@@ -6,12 +6,13 @@ import StatCard from '../components/StatCard';
 import { useLive } from '../components/Layout';
 import PageLoader from '../components/PageLoader';
 
-function aqiInfo(aqi: number | null) {
-  if (aqi === null) return { label: '—', color: 'text-slate-400' };
-  if (aqi <= 50)  return { label: 'Good',      color: 'text-green-400' };
-  if (aqi <= 100) return { label: 'Moderate',  color: 'text-yellow-400' };
-  if (aqi <= 150) return { label: 'Unhealthy', color: 'text-orange-400' };
-  return           { label: 'Hazardous',        color: 'text-red-400' };
+// MQ135 raw ADC (0-4095) quality interpretation
+function mqInfo(raw: number | null) {
+  if (raw === null) return { label: '—', color: 'text-slate-400' };
+  if (raw <= 500)  return { label: 'Good',      color: 'text-green-400' };
+  if (raw <= 1000) return { label: 'Moderate',  color: 'text-yellow-400' };
+  if (raw <= 2000) return { label: 'Poor',      color: 'text-orange-400' };
+  return           { label: 'Hazardous',         color: 'text-red-400' };
 }
 
 const deviceDot: Record<string, string> = {
@@ -69,10 +70,12 @@ function RoomSection({ room, fridgeLiveData, liveRoom }: {
   fridgeLiveData: Map<string, { temp: number | null; humidity: number | null; timestamp: string | null }>;
   liveRoom: { airQuality: number; temperature: number; humidity: number } | null;
 }) {
-  const aqi     = liveRoom?.airQuality  ?? room.airQuality  ?? null;
+  const raw     = liveRoom?.airQuality  ?? room.airQuality  ?? null;
   const ambTemp = liveRoom?.temperature ?? room.ambientTemp ?? null;
   const ambHum  = liveRoom?.humidity    ?? room.ambientHumidity ?? null;
-  const aqiMeta = aqiInfo(aqi);
+  const mqMeta  = mqInfo(raw);
+  const hasData = raw !== null;
+
   return (
     <div className="bg-slate-800 rounded-2xl p-5 flex flex-col gap-4 border border-slate-700">
       <div className="flex items-center justify-between">
@@ -90,30 +93,37 @@ function RoomSection({ room, fridgeLiveData, liveRoom }: {
           <span className={`w-2.5 h-2.5 rounded-full ${deviceDot[room.status] ?? 'bg-slate-500'}`} />
         </div>
       </div>
+
+      {/* MQ135 Air Quality Sensor */}
       <div className="bg-slate-700/50 rounded-xl p-3 border border-slate-600/30">
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2.5 flex items-center gap-1.5">
-          <Wind size={12} /> MQ Air Quality Sensor
+          <Wind size={12} /> MQ135 Air Quality Sensor
         </p>
-        <div className="grid grid-cols-4 gap-2 text-center">
-          <div>
-            <p className={`text-xl font-bold ${aqiMeta.color}`}>{aqi ?? '—'}</p>
-            <p className="text-xs text-slate-500 mt-0.5">AQI</p>
-            {aqi !== null && <span className={`text-xs font-medium ${aqiMeta.color}`}>{aqiMeta.label}</span>}
+        {hasData ? (
+          <div className="grid grid-cols-4 gap-2 text-center">
+            <div>
+              <p className={`text-xl font-bold ${mqMeta.color}`}>{raw}</p>
+              <p className="text-xs text-slate-500 mt-0.5">Raw ADC</p>
+              <span className={`text-xs font-medium ${mqMeta.color}`}>{mqMeta.label}</span>
+            </div>
+            <div>
+              <p className={`text-xl font-bold ${mqMeta.color}`}>{mqMeta.label}</p>
+              <p className="text-xs text-slate-500 mt-0.5">Air Quality</p>
+            </div>
+            <div>
+              <p className="text-xl font-bold text-orange-300">{ambTemp !== null ? `${ambTemp}°C` : '—'}</p>
+              <p className="text-xs text-slate-500 mt-0.5">Ambient</p>
+            </div>
+            <div>
+              <p className="text-xl font-bold text-blue-300">{ambHum !== null ? `${ambHum}%` : '—'}</p>
+              <p className="text-xs text-slate-500 mt-0.5">Humidity</p>
+            </div>
           </div>
-          <div>
-            <p className="text-xl font-bold text-purple-400">{aqi ?? '—'}</p>
-            <p className="text-xs text-slate-500 mt-0.5">Air Quality</p>
-          </div>
-          <div>
-            <p className="text-xl font-bold text-orange-300">{ambTemp !== null ? `${ambTemp}°C` : '—'}</p>
-            <p className="text-xs text-slate-500 mt-0.5">Ambient</p>
-          </div>
-          <div>
-            <p className="text-xl font-bold text-blue-300">{ambHum !== null ? `${ambHum}%` : '—'}</p>
-            <p className="text-xs text-slate-500 mt-0.5">Humidity</p>
-          </div>
-        </div>
+        ) : (
+          <p className="text-xs text-slate-500 text-center py-2">No sensor data — device not connected</p>
+        )}
       </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {(room.fridges ?? []).map(fridge => {
           const live = fridgeLiveData.get(fridge.device?.id ?? '');
