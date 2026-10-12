@@ -1,0 +1,1281 @@
+COLLEGE OF SCIENCE AND TECHNOLOGY
+
+SCHOOL OF ICT
+
+DEPARTMENT OF COMPUTER AND SOFTWARE ENGINEERING
+
+RESEARCH PROJECT TITLE. RESEARCH PROJECT TITLE. 
+
+RESEARCH PROJECT TITLE.
+
+ 
+
+RESEARCH PROJECT TITLE.
+
+ 
+
+A Thesis Submitted in Fulfillment of the Requirements for the Award of a Bachelor of Science in Computer and Software Engineering at the University of Rwanda.
+
+Students’ names
+
+Registration number
+
+Full Name
+
+Xxxxxxxxxxxxxxxx
+
+Full Name
+
+Xxxxxxxxxxxxxxxx
+
+Main supervisor: Full Name
+
+Co-supervisor: Full Name 
+
+Academic year 2025-2026
+
+PROJECT ID: CSE/FTY4/26/XX
+
+DECLARATION
+
+We hereby declare that this thesis, entitled “Xxxxxxxxxxxx”, is the result of our own work and research. This thesis has not been submitted previously for any degree or examination at any other institution.
+
+We certify that the work presented in this thesis is original and that all ideas, data, and content not attributed to another source are our own. We have conducted this research in accordance with the ethical guidelines and standards of the University of Rwanda and have adhered to all relevant academic regulations.
+
+Signatures:
+
+___________________                                                                             _____________________
+
+Full Name                                                                                                 Full Name
+
+Ref.No: Xxxxxxxxxxxx                                                                           Ref.No: Xxxxxxxxxxxxx
+
+Supervisors:
+
+____________________                                                        ______________________________
+
+Full Name                                                                                                Full Name
+
+Date: .…./……/………….                                                                       Date: .…./……/………….
+
+ACKNOWLEDGMENT
+
+We would like to express our deepest gratitude to all those who have supported and guided us throughout the completion of this thesis.
+
+First and foremost, we extend our heartfelt thanks to our supervisors, Full Name and Full Name, for their continuous support, encouragement, and insightful feedback. Their expertise and guidance have been invaluable in shaping this research and bringing this project to fruition.
+
+Our sincere appreciation goes to our families and friends for their unwavering support and understanding throughout this journey. Their encouragement and patience have been a constant source of strength for us.
+
+DEDICATION
+
+This thesis is dedicated to our parents, for their sacrifices and belief in us, and to our friends, for their constant encouragement and understanding.
+
+To our families, whose love and support have been our foundation throughout our academic journey.
+
+To the xxxxx farmers of the xxxxxxx district, whose hard work and dedication inspire us to contribute to the betterment of their livelihoods through our research.
+
+ABSTRACT 
+
+Maintaining vaccines within the World Health Organization (WHO) recommended temperature range of 2°C–8°C remains a major challenge in rural dispensaries and health posts in Rwanda due to frequent power outages, inadequate monitoring systems, and unfavorable environmental conditions. These challenges often lead to vaccine spoilage, increased healthcare costs, and reduced effectiveness of immunization programs. This study aims to develop ColdChain Sentinel, an Artificial Intelligence (AI)-enhanced Internet of Things (IoT) system for predictive monitoring and smart vaccine preservation in low-resource healthcare environments. The proposed system integrates temperature, humidity, and air quality sensors connected to an ESP32 microcontroller for real-time environmental monitoring, cloud-based data transmission, automatic cooling control, and AI-driven predictive analysis. Using historical and real-time sensor data, the AI module forecasts potential temperature instability and storage risks over short-term and medium-term periods of up to seven days. The system also generates proactive alerts and risk-level notifications to support preventive decision-making by healthcare workers. The expected results include improved vaccine safety, reduced spoilage, enhanced cold chain reliability, and better response to environmental risks. The findings suggest that integrating AI with IoT technologies can transform traditional reactive cold chain systems into intelligent predictive healthcare solutions, contributing to the advancement of smart healthcare infrastructure and resilient vaccine preservation systems in rural healthcare facilities.
+
+Keywords: Cold Chain, Internet of Things (IoT), Artificial Intelligence (AI), Predictive Monitoring, Vaccine Preservation, Smart Healthcare, Environmental Monitoring.
+
+CONTENTS
+
+DECLARATIONi
+
+ACKNOWLEDGMENTii
+
+DEDICATIONiii
+
+ABSTRACTiv
+
+CONTENTSv
+
+LIST OF ABBREVIATIONSvi
+
+TABLE OF FIGURESvii
+
+LIST OF TABLES1
+
+CHAPTER 1: INTRODUCTION2
+
+1.1 BACKGROUND OF THE STUDY2
+
+1.2 PROBLEM STATEMENT3
+
+1.3 OBJECTIVES4
+
+1.3.1 General Objective4
+
+1.3.2 Specific Objectives4
+
+1.4 PROPOSED SOLUTION5
+
+1.5 SCOPE OF THIS STUDY5
+
+1.6 RESEARCH MOTIVATION/RATIONAL6
+
+1.7 RESEARCH QUESTIONS6
+
+1.8 HYPOTHESIS7
+
+1.8.1 Primary Hypothesis (Hp)7
+
+1.8.2 Null Hypothesis (H₀)7
+
+1.8.3 Alternative Hypothesis (H₁)7
+
+CHAPTER 2: LITERATURE REVIEW8
+
+2.1 INTRODUCTION8
+
+2.2 VACCINE COLD CHAIN SYSTEMS8
+
+2.3 INTERNET OF THINGS (IOT) IN HEALTHCARE MONITORING SYSTEMS11
+
+2.4 ARTIFICIAL INTELLIGENCE IN PREDICTIVE HEALTHCARE SYSTEMS14
+
+2.5 CLOUD COMPUTING IN HEALTHCARE MONITORING SYSTEMS16
+
+CHAPTER 3: RESEARCH METHODOLOGY24
+
+3.1.1 Site Description24
+
+3.2 DATA COLLECTION25
+
+3.3 HARDWARE AND SOFTWARE REQUIREMENTS28
+
+3.4 PROPOSED ARCHITECTURE29
+
+3.5 SYSTEM REQUIREMENTS30
+
+3.6 PROJECT DEVELOPMENT METHODOLOGY31
+
+3.7 IMPLEMENTATION TIMELINE31
+
+CHAPTER 4: DESIGN AND IMPLEMENTATION [at least 8 pages, with subsections depending on your research technologies]33
+
+CHAPTER 5: DISCUSSION OF THE RESULTS [at least 10 pages, with subsections depending on your research technologies]34
+
+CHAPTER 6: CONCLUSION AND RECOMMENDATION [1 page]35
+
+REFERENCES [Survey at least 30 journals published between 2023-2026, use IEEE format and include DoIs]36
+
+APPENDICES (IF you have used questionnaires)37
+
+LIST OF ABBREVIATIONS
+
+TABLE OF FIGURES
+
+No table of figures entries found.
+
+LIST OF TABLES
+
+If any
+
+CHAPTER 1: INTRODUCTION 
+
+1.1 BACKGROUND OF THE STUDY
+
+Vaccines are among the most important tools used to prevent infectious diseases and improve public health. However, vaccines are highly sensitive biological products that require proper storage conditions to remain effective. According to the World Health Organization, most vaccines must be stored within a temperature range of 2°C–8°C throughout the cold chain process [6]. Exposure to temperatures outside this recommended range can reduce vaccine potency, resulting in spoilage, financial losses, and reduced effectiveness of immunization programs.
+
+Maintaining proper cold chain conditions remains a major challenge in many developing countries, especially in rural healthcare facilities where infrastructure is limited. In Rwanda, dispensaries and health posts often experience unstable electricity supply, insufficient monitoring systems, and harsh environmental conditions that threaten vaccine preservation [3][5]. Frequent power outages and inadequate supervision can expose vaccines to unsafe temperatures for long periods without immediate detection. A study conducted in the Eastern Province of Rwanda reported that several healthcare facilities face difficulties in maintaining cold chain storage conditions according to WHO standards [5].
+
+Traditional vaccine storage systems mainly rely on manual temperature monitoring methods where healthcare workers periodically check and record refrigerator temperatures [2]. Although this approach is widely used, it does not provide continuous monitoring or instant response during sudden environmental changes. Recent advancements in Internet of Things (IoT) technologies have introduced automated monitoring systems capable of collecting and transmitting environmental data in real time [7]. IoT-based healthcare systems use sensors, cloud platforms, and communication technologies to improve monitoring efficiency and remote supervision [8].
+
+Despite these technological improvements, many existing systems remain reactive rather than preventive. Most systems only notify healthcare workers after unsafe conditions have already occurred [2][3]. In addition, many monitoring systems focus mainly on temperature while neglecting other environmental factors such as humidity, air quality, and cooling system efficiency that may affect vaccine storage conditions.
+
+Recent developments in Artificial Intelligence (AI) have created opportunities for predictive healthcare systems capable of forecasting risks before they occur. AI can analyze historical and real-time data to identify patterns and predict future environmental changes [1]. Integrating AI with IoT monitoring systems can therefore improve vaccine preservation by enabling proactive intervention instead of reactive response.
+
+This study proposes ColdChain Sentinel, an AI-enhanced IoT system designed for predictive monitoring and smart vaccine preservation in rural dispensaries and health posts. The proposed system combines environmental sensing, cloud-based monitoring, automatic cooling mechanisms, and AI-powered predictive analytics to improve vaccine safety and reduce spoilage in low-resource healthcare environments [8][9].
+
+1.2 PROBLEM STATEMENT
+
+Maintaining safe vaccine storage conditions remains a significant challenge in rural dispensaries and health posts in Rwanda. Vaccines require continuous storage within the World Health Organization (WHO) recommended temperature range of 2°C–8°C to preserve their effectiveness and safety [6]. However, many rural healthcare facilities experience frequent power outages, inadequate refrigeration infrastructure, and limited monitoring systems that expose vaccines to unsafe environmental conditions [3][5].
+
+Most healthcare facilities still rely on manual temperature monitoring methods that do not provide continuous supervision or immediate response during sudden temperature changes [2]. As a result, vaccines may remain exposed to unsafe temperatures for long periods before healthcare workers detect the problem. This increases the risk of vaccine spoilage, financial losses, and reduced effectiveness of immunization programs. In addition, poor environmental conditions such as high humidity, dust, and poor air quality may affect cooling system performance and further compromise vaccine preservation [3].
+
+Although some existing IoT-based systems provide real-time monitoring and alert generation, many of them remain reactive rather than preventive [2][7]. These systems mainly notify users after unsafe conditions have already occurred, leaving limited opportunity for preventive action. Furthermore, most current cold chain systems lack predictive intelligence capable of forecasting future temperature instability or identifying patterns that may lead to vaccine storage failure.
+
+There is therefore a need for an intelligent and proactive vaccine preservation system capable of continuously monitoring environmental conditions, automatically responding to unsafe situations, and predicting future storage risks before vaccine damage occurs. This study addresses this challenge by proposing ColdChain Sentinel, an AI-enhanced IoT system designed to improve vaccine safety through real-time monitoring, predictive analytics, cloud-based supervision, and automatic cooling control [8][9].
+
+1.3 OBJECTIVES
+
+1.3.1 General Objective
+
+The main aim of this research project is to develop ColdChain Sentinel: a resilient AI-enhanced IoT based solution designed to predictive monitoring temperature, humidity, and external air quality continuously and in real time with a proactive cooling backup. This system is intended to ensure the safe storage of vaccines in rural health centers and dispensaries.
+
+1.3.2 Specific Objectives
+
+The specific objectives for the ColdChain Sentinel project are: 
+
+ 1. To conduct research on current cold chain management challenges in rural health centers and identify technological solutions for improving vaccine storage safety. 
+
+2. To develop an IoT-based system for continuous monitoring of temperature, humidity, and external air quality in vaccine storage environments.
+
+ 3. To design and implement an automatic cooling backup system that maintains vaccine storage temperatures within the WHO-recommended range of 2°C to 8°C during environmental instability or power interruptions.
+
+ 4. To develop a cloud-based dashboard for transmitting, visualizing, and remotely supervising vaccine storage conditions and system performance.
+
+5. To design an alert and notification mechanism that immediately informs healthcare personnel when unsafe environmental conditions or anomalies are detected.
+
+6. To design and integrate an AI-based predictive model capable of forecasting future temperature risks and storage instability to support proactive decision-making. 
+
+7. To evaluate the effectiveness of the proposed ColdChain Sentinel system in reducing vaccine spoilage risks and improving vaccine storage management.
+
+1.4 PROPOSED SOLUTION
+
+This research proposes ColdChain Sentinel, an AI-enhanced IoT system designed to ensure safe vaccine preservation through intelligent environmental monitoring and predictive risk analysis.
+
+The proposed system integrates environmental sensors, including temperature, humidity, and air quality sensors, connected to an ESP32 microcontroller for continuous real-time data collection. The collected data is transmitted to a cloud platform where it is stored, processed, and analyzed.
+
+Unlike conventional cold chain systems that only provide reactive monitoring, the proposed system incorporates an Artificial Intelligence prediction module capable of analyzing historical and real-time environmental data to forecast potential temperature instability and storage risks. The AI model provides both short-term predictions and medium-term risk forecasting of up to seven days.
+
+Additionally, the system includes an automatic cooling backup mechanism that activates whenever unsafe temperature conditions are detected. Healthcare workers and administrators can remotely supervise storage conditions through a web-based dashboard that displays live sensor readings, predictive insights, risk levels, and emergency alerts.
+
+The integration of IoT sensing, AI prediction, cloud monitoring, and proactive cooling creates an intelligent vaccine preservation system capable of improving healthcare reliability in low-resource rural environments.
+
+1.5 SCOPE OF THIS STUDY
+
+This study focuses on the design, development, and testing of a prototype AI-enhanced IoT system for vaccine preservation in rural dispensaries and health posts.
+
+The research covers:
+
+Real-time monitoring of temperature, humidity, and air quality 
+
+AI-based prediction of future temperature risks 
+
+Automatic cooling activation 
+
+Cloud-based data storage and dashboard visualization 
+
+Alert and notification mechanisms 
+
+The study is limited to prototype implementation and simulated testing environments. Large-scale deployment across national healthcare infrastructure is outside the scope of this research.
+
+1.6 RESEARCH MOTIVATION/RATIONAL
+
+This research is motivated by the growing need to improve vaccine safety and healthcare reliability in rural communities where cold chain infrastructure remains vulnerable to environmental and electrical instability.
+
+The integration of AI with IoT technologies offers an opportunity to shift vaccine preservation systems from reactive monitoring toward predictive and preventive healthcare solutions. By enabling early detection of storage risks, the proposed system can support healthcare workers in protecting vaccines before damage occurs.
+
+Academically, this research also contributes to the growing field of intelligent healthcare systems by demonstrating how AI-driven predictive analytics can be applied in low-resource healthcare environments to improve operational efficiency and public health outcomes.
+
+1.7 RESEARCH QUESTIONS
+
+1. What are the major cold chain management challenges affecting vaccine storage safety in rural health centers, and what technological solutions can address them?
+
+2. How can IoT technologies improve real-time monitoring of temperature, humidity, and air quality in vaccine storage environments?
+
+3. How can automatic cooling systems and alert mechanisms help maintain safe vaccine storage conditions during environmental instability or power outages?
+
+4. How can cloud platforms support remote supervision and management of vaccine storage conditions and system performance?
+
+5. How can Artificial Intelligence be integrated with IoT sensor data to predict future temperature risks and storage instability?
+
+6. How effective is the proposed ColdChain Sentinel system in reducing vaccine spoilage risks and improving proactive decision-making in rural healthcare facilities?
+
+1.8 HYPOTHESIS
+
+1.8.1 Primary Hypothesis (Hp)
+
+The integration of Internet of Things (IoT) monitoring, Artificial Intelligence (AI)-based predictive analytics, cloud-based supervision, and automatic cooling control in the ColdChain Sentinel system will improve vaccine preservation by enhancing environmental monitoring, reducing storage risks, and supporting proactive decision-making in rural healthcare facilities.
+
+1.8.2 Null Hypothesis (H₀)
+
+The integration of Internet of Things (IoT) monitoring, Artificial Intelligence (AI)-based predictive analytics, cloud-based supervision, and automatic cooling control in the ColdChain Sentinel system will not significantly improve vaccine preservation, environmental monitoring, or storage risk management in rural healthcare facilities.
+
+1.8.3 Alternative Hypothesis (H₁)
+
+The integration of Internet of Things (IoT) monitoring, Artificial Intelligence (AI)-based predictive analytics, cloud-based supervision, and automatic cooling control in the ColdChain Sentinel system will significantly improve vaccine preservation, environmental monitoring, and storage risk management in rural healthcare facilities.
+
+CHAPTER 2: LITERATURE REVIEW 
+
+2.1 INTRODUCTION
+
+This chapter reviews existing literature related to vaccine cold chain management, Internet of Things (IoT)-based healthcare monitoring systems, Artificial Intelligence (AI) predictive technologies, cloud-enabled healthcare platforms, and environmental monitoring systems. The chapter examines previous studies, technologies, methodologies, and findings relevant to vaccine preservation and smart healthcare monitoring. It also analyzes the strengths and limitations of existing systems, identifies research gaps in current cold chain solutions, and explains how the proposed ColdChain Sentinel system contributes to improving predictive vaccine preservation in rural healthcare environments. Through the synthesis and comparison of related studies, this chapter establishes the theoretical and technological foundation for the proposed research.
+
+2.2 VACCINE COLD CHAIN SYSTEMS
+
+A vaccine cold chain refers to the system used to store, transport, and handle vaccines within recommended temperature conditions from production until administration. Maintaining an effective cold chain is essential because vaccines are highly sensitive biological products that can lose their potency when exposed to temperatures outside the recommended range. According to the World Health Organization, most vaccines must be maintained between 2°C and 8°C throughout storage and handling processes to preserve their effectiveness [6]. Exposure to freezing temperatures or excessive heat can permanently damage vaccines, leading to reduced immunization effectiveness and increased vaccine wastage.
+
+Globally, maintaining vaccine cold chain systems remains a major public health challenge, particularly in low-resource healthcare environments. A recent study by Jiang et al. (2024) explained that temperature instability during vaccine storage continues to affect healthcare systems despite advancements in digital monitoring technologies. The study emphasized that many healthcare facilities still experience delays in detecting temperature anomalies, resulting in vaccine losses and operational inefficiencies [10]. Similarly, Ali and Khan (2023) observed that cold chain disruptions remain common in developing regions due to poor infrastructure, inadequate supervision, and unstable electricity supply [11].
+
+In Rwanda, vaccine preservation remains particularly challenging in rural dispensaries and health posts where healthcare infrastructure is limited. Nyirimanzi et al. [5] assessed medicine cold chain storage conformity in health facilities of the Eastern Province of Rwanda and reported that several facilities failed to maintain WHO-recommended storage conditions consistently. Their findings identified inadequate refrigeration systems, insufficient monitoring practices, and frequent electricity interruptions as major contributors to cold chain failure [5]. These findings demonstrate that maintaining vaccine safety remains a critical concern in rural healthcare environments.
+
+Traditionally, many healthcare facilities rely on manual temperature monitoring methods where healthcare workers periodically inspect refrigerators and manually record temperatures [2]. Although manual monitoring systems are relatively affordable and easy to implement, they provide limited supervision and are unable to detect sudden temperature fluctuations in real time. Kalisa and Tuyisenge [2] noted that manual monitoring methods increase the risk of delayed intervention, especially during power outages or refrigeration failures. Similar findings were reported by Uwonkunda [3], who highlighted that delayed detection of unsafe storage conditions contributes significantly to vaccine spoilage in healthcare facilities.
+
+To address these challenges, recent studies have proposed digital vaccine monitoring systems based on Internet of Things (IoT) technologies. IoT-based cold chain systems integrate sensors, communication technologies, and cloud platforms to support continuous environmental monitoring and automated alerts [7]. Ben-Daya et al. [7] explained that IoT technologies improve supply chain visibility by enabling real-time monitoring and remote supervision of environmental conditions. These systems reduce dependence on manual supervision and improve response time during storage anomalies.
+
+Several researchers have implemented IoT-based cold chain monitoring systems for healthcare applications. Tang et al. [4] developed a temperature and humidity monitoring system using Arduino-based sensors for cold storage environments. Their system demonstrated improved monitoring accuracy and automated environmental supervision compared to traditional manual methods. Similarly, Kumar and Verma [8] proposed a cloud-enabled IoT healthcare monitoring framework capable of transmitting environmental data in real time and generating automated alerts. Their study showed that cloud-integrated systems improve healthcare monitoring efficiency and support remote supervision.
+
+Despite these technological advancements, many existing vaccine monitoring systems remain reactive rather than preventive. Most systems focus on detecting and reporting unsafe conditions after they occur rather than predicting future risks before vaccine damage happens [2][3]. In addition, many existing studies primarily focus on temperature monitoring while overlooking other environmental factors such as humidity, air quality, and cooling system performance that may influence vaccine preservation.
+
+Recent advancements in Artificial Intelligence (AI) have introduced opportunities for predictive cold chain management systems capable of forecasting future environmental conditions and supporting preventive intervention. Harrabi et al. (2024) demonstrated that AI-based anomaly detection systems can significantly improve predictive monitoring performance in smart healthcare environments by identifying patterns associated with environmental instability [12]. Similarly, Alex, Anna, and Peter [1] showed that integrating AI with IoT technologies improves predictive analysis and operational efficiency in environmental monitoring applications.
+
+Although existing studies demonstrate the effectiveness of IoT technologies in healthcare monitoring, there remains limited research on AI-enhanced predictive vaccine preservation systems specifically designed for rural healthcare facilities in Rwanda. Most current systems lack intelligent forecasting capabilities capable of anticipating future storage risks before unsafe conditions occur.
+
+Therefore, this study proposes ColdChain Sentinel, an AI-enhanced IoT system designed to improve vaccine preservation through predictive monitoring, environmental sensing, cloud-based supervision, and proactive cooling control. Unlike conventional reactive systems, the proposed solution aims to forecast temperature instability and generate preventive alerts to support proactive vaccine protection in rural healthcare environments.
+
+Table 1 Summary of Existing Vaccine Cold Chain Studies
+
+System
+
+Real-Time Monitoring
+
+Cloud Support
+
+AI Prediction
+
+Automatic Response
+
+Rural Healthcare Focus
+
+Kalisa & Tuyisenge [2]
+
+✅
+
+✅
+
+❌
+
+❌
+
+✅
+
+Uwonkunda [3]
+
+✅
+
+✅
+
+❌
+
+❌
+
+✅
+
+Tang et al. [4]
+
+✅
+
+❌
+
+❌
+
+❌
+
+❌
+
+Kumar & Verma [8]
+
+✅
+
+✅
+
+Partial
+
+❌
+
+❌
+
+Proposed System (ColdChain Sentinel)
+
+✅
+
+✅
+
+✅
+
+✅
+
+✅
+
+2.3 INTERNET OF THINGS (IOT) IN HEALTHCARE MONITORING SYSTEMS
+
+The Internet of Things (IoT) refers to a network of interconnected devices capable of collecting, transmitting, and processing data through internet connectivity. IoT technologies have significantly transformed healthcare systems by enabling real-time monitoring, remote supervision, automation, and intelligent decision-making. In healthcare environments, IoT systems integrate sensors, communication technologies, cloud platforms, and data analytics tools to improve operational efficiency and patient care [7].
+
+Recent advancements in IoT technologies have expanded their applications in healthcare monitoring systems, including patient monitoring, medical equipment management, environmental sensing, and vaccine cold chain supervision. Ben-Daya et al. [7] explained that IoT technologies improve supply chain visibility and operational efficiency through continuous data collection and automated communication between devices. Their study emphasized that IoT systems reduce manual intervention and improve monitoring accuracy in sensitive environments.
+
+In vaccine cold chain management, IoT systems are increasingly used to monitor environmental conditions such as temperature, humidity, and refrigeration performance in real time. Kalisa and Tuyisenge [2] developed an IoT-based remote monitoring solution for efficient storage and delivery of temperature-sensitive vaccines in Rwanda. Their system integrated environmental sensors with cloud communication technologies to support continuous monitoring and remote supervision of vaccine storage conditions. The study demonstrated that IoT systems improve monitoring efficiency and reduce the risks associated with manual temperature recording.
+
+Similarly, Uwonkunda [3] proposed a smart monitoring system for hospital cold rooms in Rwanda using sensor technologies and real-time data transmission. The study showed that automated monitoring systems improve responsiveness and support faster intervention during temperature instability. However, the system mainly focused on real-time monitoring and alert generation without predictive analytics capabilities.
+
+IoT healthcare monitoring systems commonly use environmental sensors such as DHT22 temperature and humidity sensors, MQ-series gas sensors, microcontrollers, and wireless communication technologies to collect and transmit environmental data [4]. Tang et al. [4] developed a temperature and humidity monitoring system for cold storage environments using Arduino-based sensors. Their findings demonstrated that automated sensing systems improve monitoring reliability and provide more accurate environmental supervision than traditional manual approaches.
+
+Cloud-enabled IoT architectures further improve healthcare monitoring systems by enabling centralized data storage, remote accessibility, and automated alert mechanisms. Kumar and Verma [8] proposed a cloud-enabled IoT healthcare framework capable of real-time environmental monitoring and automated alert generation. Their study demonstrated that cloud platforms improve healthcare efficiency by allowing healthcare personnel to remotely supervise environmental conditions using internet-connected devices.
+
+Recent studies have also emphasized the importance of resilient IoT architectures in rural healthcare environments affected by unstable electricity supply and connectivity interruptions. Mwangi, Mutua, and Otieno [9] proposed resilient IoT healthcare monitoring architectures designed for low-resource environments with unreliable power systems. Their study highlighted that resilient system design improves monitoring reliability and reduces system downtime during power instability.
+
+Despite the growing adoption of IoT technologies in healthcare systems, several limitations remain in existing monitoring solutions. Most IoT-based healthcare systems focus primarily on real-time sensing and threshold-based alerts while lacking predictive intelligence capable of forecasting future risks [2][3]. In many cases, healthcare workers are informed only after unsafe environmental conditions have already occurred. Additionally, several monitoring systems focus mainly on temperature supervision while neglecting other environmental conditions such as humidity, air quality, and cooling system efficiency.
+
+Recent research has suggested integrating Artificial Intelligence (AI) with IoT systems to improve predictive healthcare monitoring and intelligent decision-making. AI-enhanced IoT systems can analyze historical and real-time environmental data to identify patterns, predict anomalies, and support proactive intervention [1][12]. This integration has shown promising results in environmental monitoring, agriculture, and smart infrastructure management applications.
+
+Although existing literature demonstrates that IoT technologies improve healthcare monitoring efficiency and automation, there remains limited research on AI-enhanced IoT systems specifically designed for predictive vaccine preservation in rural healthcare facilities. Most current systems remain reactive rather than preventive and provide limited support for forecasting future storage instability.
+
+This study addresses these limitations by proposing ColdChain Sentinel, an AI-enhanced IoT system capable of combining real-time environmental monitoring, cloud-based supervision, predictive analytics, and automatic cooling control to improve proactive vaccine preservation in rural dispensaries and health posts.
+
+Table 2 Summary of IoT-Based Healthcare Monitoring Studies
+
+Author(s)
+
+Focus Area
+
+Technologies Used
+
+Key Contribution
+
+Limitation
+
+Ben-Daya et al. [7]
+
+IoT in supply chain management
+
+IoT communication systems
+
+Improved monitoring and automation
+
+General supply chain focus
+
+Kalisa & Tuyisenge [2]
+
+Vaccine monitoring in Rwanda
+
+IoT sensors, cloud systems
+
+Remote vaccine monitoring
+
+No AI prediction
+
+Uwonkunda [3]
+
+Hospital cold room monitoring
+
+Smart sensors, cloud monitoring
+
+Real-time supervision
+
+Reactive monitoring only
+
+Tang et al. [4]
+
+Environmental monitoring systems
+
+Arduino, sensors
+
+Automated monitoring accuracy
+
+No cloud integration
+
+Kumar & Verma [8]
+
+Cloud healthcare monitoring
+
+Cloud-enabled IoT
+
+Remote monitoring and alerts
+
+Limited predictive capabilities
+
+Mwangi et al. [9]
+
+Rural healthcare IoT systems
+
+Resilient IoT architecture
+
+Improved reliability under power instability
+
+No predictive analytics
+
+Proposed System
+
+Predictive vaccine preservation
+
+IoT + AI + Cloud + Smart Cooling
+
+Predictive monitoring and preventive intervention
+
+Prototype implementation
+
+2.4 ARTIFICIAL INTELLIGENCE IN PREDICTIVE HEALTHCARE SYSTEMS
+
+Artificial Intelligence (AI) refers to computer-based systems capable of simulating human intelligence through learning, reasoning, pattern recognition, and decision-making. In recent years, AI technologies have become increasingly important in healthcare systems because of their ability to analyze large amounts of data, identify hidden patterns, and support predictive decision-making. AI is widely applied in medical diagnosis, patient monitoring, healthcare automation, and predictive analytics to improve operational efficiency and healthcare outcomes [12].
+
+One of the most important advantages of AI in healthcare monitoring systems is its ability to perform predictive analysis. Predictive AI systems use historical and real-time data to forecast future events and detect anomalies before critical failures occur. In healthcare environments, this capability is particularly valuable because early detection of risks can prevent equipment failure, improve patient safety, and reduce operational losses.
+
+Recent studies have demonstrated the effectiveness of AI technologies in environmental monitoring and intelligent automation systems. Alex, Anna, and Peter [1] integrated AI and IoT technologies in agricultural ecosystems to improve environmental monitoring and predictive analysis. Their study showed that AI algorithms can analyze environmental patterns and forecast future conditions with improved accuracy. Although their research focused on agriculture, the findings demonstrate the potential of AI-IoT integration in predictive environmental monitoring applications.
+
+AI technologies such as Machine Learning (ML), Deep Learning (DL), Artificial Neural Networks (ANN), Random Forest, and Long Short-Term Memory (LSTM) models are commonly used in predictive healthcare systems [12][15]. These models are capable of analyzing time-series data generated by sensors to identify trends and predict future environmental changes. LSTM models, in particular, are highly effective for sequential and time-dependent data analysis because they can learn long-term dependencies in environmental patterns.
+
+Harrabi et al. [12] proposed an AI-based anomaly detection system for smart healthcare monitoring environments. Their study demonstrated that AI models significantly improve anomaly detection accuracy compared to traditional threshold-based monitoring approaches. The researchers concluded that predictive AI systems improve healthcare responsiveness by identifying environmental instability before system failure occurs.
+
+Similarly, Rahman et al. (2025) developed a machine learning-based healthcare monitoring framework capable of predicting environmental risks in hospital environments using sensor-generated data [15]. Their findings showed that predictive AI models improve system reliability and reduce delayed response during abnormal environmental conditions.
+
+In healthcare cold chain management, AI technologies are increasingly being explored to improve vaccine preservation and environmental stability. AI models can analyze temperature fluctuations, humidity patterns, equipment performance, and historical environmental data to forecast future storage risks. Such predictive capabilities can help healthcare workers take preventive actions before unsafe conditions damage vaccines.
+
+Despite these advancements, many existing vaccine monitoring systems still rely on simple threshold-based alert systems rather than intelligent predictive models [2][3]. Most current systems only notify users after dangerous conditions have already occurred, limiting opportunities for preventive intervention. Additionally, some existing AI healthcare systems are complex, expensive, and difficult to implement in low-resource healthcare environments.
+
+Another challenge associated with AI systems is the quality and availability of training data. Predictive AI models require sufficient historical environmental data to achieve accurate forecasting performance. In rural healthcare facilities, inconsistent monitoring infrastructure may limit data availability and affect prediction accuracy [9]. Researchers have therefore emphasized the importance of integrating resilient IoT architectures with cloud-based data collection systems to support effective AI implementation [8][9].
+
+Recent studies have also highlighted the growing integration of AI with cloud computing and IoT technologies in smart healthcare systems. Cloud-based AI systems enable centralized processing of environmental data, remote monitoring, and scalable predictive analytics [8]. This integration improves healthcare automation and allows healthcare workers to access predictive insights remotely.
+
+Although AI technologies have shown strong potential in healthcare monitoring and predictive analytics, there remains limited research on AI-enhanced predictive vaccine preservation systems specifically designed for rural healthcare environments in Rwanda. Most existing studies focus mainly on real-time monitoring and lack intelligent forecasting mechanisms capable of predicting future temperature instability in vaccine storage systems.
+
+Therefore, this research proposes ColdChain Sentinel, an AI-enhanced IoT system designed to combine real-time environmental monitoring, predictive analytics, cloud-based supervision, and proactive cooling control for intelligent vaccine preservation. Unlike conventional reactive systems, the proposed solution aims to forecast temperature risks and provide preventive alerts before unsafe storage conditions occur.
+
+Table 3 Summary of AI-Based Predictive Healthcare Studies
+
+Author(s)
+
+Focus Area
+
+AI Technique
+
+Key Contribution
+
+Limitation
+
+Alex et al. [1]
+
+AI-IoT environmental monitoring
+
+Predictive AI algorithms
+
+Improved predictive environmental analysis
+
+Agriculture-focused
+
+Harrabi et al. [12]
+
+Healthcare anomaly detection
+
+Machine Learning
+
+Improved anomaly detection accuracy
+
+Not vaccine-focused
+
+Rahman et al. [15]
+
+Predictive healthcare monitoring
+
+Machine Learning models
+
+Environmental risk prediction
+
+Complex implementation
+
+Kumar & Verma [8]
+
+Cloud healthcare systems
+
+AI-assisted cloud analytics
+
+Remote predictive healthcare supervision
+
+Limited environmental sensing
+
+Mwangi et al. [9]
+
+Rural healthcare monitoring
+
+Resilient IoT systems
+
+Improved monitoring reliability
+
+No advanced AI forecasting
+
+Proposed System
+
+Predictive vaccine preservation
+
+AI + IoT + LSTM forecasting
+
+Predictive risk analysis and preventive alerts
+
+Prototype implementation stage
+
+2.5 CLOUD COMPUTING IN HEALTHCARE MONITORING SYSTEMS
+
+Cloud computing has become a critical component in modern healthcare monitoring systems because it enables centralized data storage, remote accessibility, scalability, and real-time communication. In IoT healthcare environments, cloud platforms facilitate the transmission, storage, and analysis of sensor-generated data from distributed monitoring devices [8].
+
+Kumar and Verma [8] proposed a cloud-enabled IoT framework for healthcare monitoring and alert systems. Their study showed that cloud platforms improve healthcare efficiency by supporting real-time data visualization, automated alert generation, and remote supervision. Cloud computing also enables healthcare workers and administrators to access monitoring information from different locations using internet-connected devices.
+
+Cloud-based monitoring systems are particularly important in rural healthcare environments where technical supervision may be limited. Through cloud integration, healthcare personnel can remotely monitor environmental conditions and respond quickly to unsafe storage situations.
+
+However, cloud-enabled monitoring systems still face challenges related to internet dependency, data security, and power instability in low-resource environments [9]. Mwangi, Mutua, and Otieno [9] emphasized the importance of resilient IoT architectures capable of operating reliably under unstable power and connectivity conditions in rural healthcare settings.
+
+The integration of cloud computing with AI and IoT technologies therefore provides opportunities for developing more resilient and intelligent healthcare monitoring systems capable of supporting predictive vaccine preservation.
+
+2.6 ENVIRONMENTAL MONITORING TECHNOLOGIES IN COLD CHAIN SYSTEMS
+
+Environmental monitoring technologies play a critical role in healthcare cold chain systems because environmental conditions directly affect vaccine preservation and storage stability. Vaccines are highly sensitive to changes in temperature, humidity, and surrounding environmental conditions. Continuous monitoring of these environmental parameters is therefore essential for maintaining vaccine potency and reducing storage-related risks [6].
+
+Temperature monitoring is one of the most important components of vaccine cold chain management. According to the World Health Organization, most vaccines must remain within a storage temperature range of 2°C–8°C to maintain effectiveness [6]. Exposure to temperatures above or below this range may permanently damage vaccines and compromise immunization programs.
+
+Traditional environmental monitoring systems in healthcare facilities commonly rely on manual thermometers and periodic inspections by healthcare workers [2]. Although these methods are simple and inexpensive, they do not provide continuous monitoring or immediate detection of environmental fluctuations. Delayed identification of unsafe conditions increases the risk of vaccine spoilage, especially in healthcare facilities affected by unstable power supply and limited supervision [5].
+
+Recent technological advancements have introduced sensor-based environmental monitoring systems capable of collecting real-time environmental data automatically. These systems commonly integrate temperature sensors, humidity sensors, gas sensors, and wireless communication technologies to improve monitoring accuracy and responsiveness [4]. Tang et al. [4] developed a temperature and humidity monitoring system for cold storage environments using Arduino-based sensor technologies. Their study demonstrated that automated sensing systems improve monitoring precision and reduce the limitations associated with manual monitoring methods.
+
+Temperature sensors such as the DHT22, DS18B20, and LM35 are widely used in healthcare monitoring systems because of their accuracy and low power consumption [13]. Humidity sensors are also important because excessive humidity may affect refrigeration equipment performance and contribute to environmental instability. In addition, air quality monitoring technologies are increasingly being integrated into healthcare environments to monitor factors such as dust particles, gas concentration, and ventilation quality.
+
+Several recent studies have emphasized the importance of integrating multiple environmental sensing technologies into healthcare monitoring systems. Sharma and Singh [14] explained that multi-sensor healthcare systems improve environmental awareness and provide more comprehensive supervision compared to single-parameter monitoring systems. Their study highlighted that combining temperature, humidity, and air quality sensing technologies improves anomaly detection and healthcare responsiveness.
+
+Wireless sensor networks and IoT communication technologies further enhance environmental monitoring systems by enabling real-time data transmission and remote accessibility [7]. IoT-enabled sensors can continuously transmit environmental data to cloud platforms where healthcare personnel can remotely monitor storage conditions and receive automated alerts during environmental instability [8].
+
+Another important advancement in environmental monitoring systems is the integration of predictive analytics and Artificial Intelligence (AI). AI-enhanced monitoring systems can analyze environmental trends and predict future anomalies before unsafe conditions occur [12]. Predictive environmental monitoring improves preventive intervention and reduces the risks associated with delayed response during storage instability.
+
+Despite these advancements, several existing environmental monitoring systems still face important limitations. Many systems focus mainly on temperature sensing while neglecting other environmental factors such as humidity, air quality, and cooling system performance [3][4]. In addition, some existing systems lack predictive capabilities and only provide reactive alerts after environmental anomalies occur.
+
+Power instability and connectivity interruptions also affect environmental monitoring reliability in rural healthcare facilities [9]. Researchers have therefore emphasized the need for resilient monitoring architectures capable of operating effectively in low-resource environments.
+
+The proposed ColdChain Sentinel system addresses these limitations by integrating multiple environmental sensors, IoT communication technologies, cloud-based monitoring, and AI-powered predictive analytics into a single intelligent vaccine preservation platform. The system continuously monitors temperature, humidity, and air quality while forecasting future environmental risks and supporting proactive cooling control.
+
+Table 4 Summary of Environmental Monitoring Technologies
+
+Author(s)
+
+Monitoring Focus
+
+Technologies Used
+
+Key Contribution
+
+Limitation
+
+Tang et al. [4]
+
+Temperature and humidity monitoring
+
+Arduino, environmental sensors
+
+Improved automated environmental monitoring
+
+No cloud or AI integration
+
+Sharma & Singh [14]
+
+Smart healthcare monitoring
+
+Multi-sensor IoT systems
+
+Comprehensive healthcare sensing
+
+Limited predictive capabilities
+
+Ben-Daya et al. [7]
+
+IoT environmental monitoring
+
+IoT communication systems
+
+Real-time monitoring and automation
+
+General supply chain focus
+
+Kumar & Verma [8]
+
+Cloud healthcare systems
+
+IoT + cloud monitoring
+
+Remote environmental supervision
+
+No advanced AI prediction
+
+Harrabi et al. [12]
+
+AI healthcare monitoring
+
+AI anomaly detection
+
+Improved anomaly prediction
+
+Not focused on vaccine storage
+
+Mwangi et al. [9]
+
+Rural healthcare monitoring
+
+Resilient IoT architectures
+
+Improved reliability under unstable power
+
+No multi-environment sensing
+
+Proposed System
+
+Predictive vaccine preservation
+
+Temperature + humidity + air quality sensors + AI
+
+Predictive environmental monitoring and preventive control
+
+Prototype implementation
+
+2.7 EXISTING SYSTEMS, COMPARATIVE ANALYSIS, AND RESEARCH GAPS
+
+Several studies have proposed smart healthcare monitoring systems aimed at improving vaccine preservation, environmental monitoring, and cold chain supervision. These systems mainly integrate Internet of Things (IoT) technologies, environmental sensors, cloud platforms, and automated alert mechanisms to improve monitoring efficiency and reduce dependence on manual supervision [2][7]. Although these systems have significantly improved real-time monitoring capabilities, important limitations still exist regarding predictive intelligence, environmental coverage, and proactive intervention.
+
+Kalisa and Tuyisenge [2] developed an IoT-based remote monitoring solution for efficient storage and delivery of temperature-sensitive vaccines in Rwanda. Their system integrated environmental sensors and cloud communication technologies to support real-time monitoring and remote supervision. The study demonstrated improved monitoring efficiency compared to manual approaches. However, the system mainly focused on monitoring and alert generation without predictive analytics capabilities.
+
+Similarly, Uwonkunda [3] designed a smart monitoring system for hospital cold rooms using sensor technologies and cloud-based supervision. The proposed system improved visibility of environmental conditions and supported automated monitoring. However, the study remained limited to reactive monitoring approaches where healthcare workers were informed only after unsafe environmental conditions occurred.
+
+Tang et al. [4] proposed an Arduino-based temperature and humidity monitoring system for cold storage environments. Their system demonstrated that automated environmental sensing improves monitoring accuracy and reduces the limitations associated with manual temperature recording. Nevertheless, the system lacked cloud integration, remote accessibility, and predictive intelligence.
+
+Cloud-based healthcare monitoring systems have also been widely explored in recent studies. Kumar and Verma [8] proposed a cloud-enabled IoT healthcare framework capable of supporting real-time data visualization, automated alerts, and remote supervision. Their findings showed that cloud computing improves healthcare responsiveness and centralized monitoring efficiency. However, the study provided limited focus on predictive environmental forecasting for vaccine preservation systems.
+
+Recent research has further explored the integration of Artificial Intelligence (AI) into healthcare monitoring systems. Harrabi et al. [12] demonstrated that AI-based anomaly detection systems improve predictive monitoring performance by identifying abnormal environmental patterns before system failure occurs. Wang and Chen [16] also highlighted the effectiveness of deep learning models in time-series healthcare prediction applications. Despite these advancements, most existing AI healthcare systems remain complex and are rarely designed specifically for low-resource rural healthcare environments.
+
+Studies focusing on resilient healthcare monitoring architectures have also addressed challenges related to unstable electricity supply and unreliable connectivity. Mwangi et al. [9] proposed resilient IoT architectures capable of improving monitoring reliability in rural healthcare settings affected by power instability. Their findings emphasized the importance of backup communication and resilient system design in low-resource environments. However, their study did not integrate AI-based predictive analytics or environmental forecasting.
+
+Although the reviewed literature demonstrates significant progress in IoT healthcare systems, several important gaps remain. First, many existing systems remain reactive rather than proactive. Most systems generate alerts only after unsafe conditions occur instead of predicting future risks before vaccine damage happens [2][3]. Second, several monitoring systems focus primarily on temperature sensing while neglecting other environmental parameters such as humidity, air quality, and cooling system efficiency [4]. Third, there is limited research on AI-enhanced vaccine preservation systems specifically designed for rural healthcare environments in Rwanda.
+
+Another major limitation identified in the literature is the lack of integrated systems combining:
+
+real-time environmental monitoring, 
+
+cloud-based supervision, 
+
+predictive analytics, 
+
+automatic cooling response, 
+
+and resilient operation under unstable power conditions. 
+
+Most current systems implement only one or two of these features rather than providing a fully integrated intelligent vaccine preservation solution.
+
+To address these limitations, this research proposes ColdChain Sentinel, an AI-enhanced IoT system designed for predictive vaccine preservation in rural dispensaries and health posts. The proposed system integrates environmental sensing, cloud computing, predictive AI analytics, automated alerts, and proactive cooling control into a unified intelligent monitoring platform. Unlike traditional reactive systems, ColdChain Sentinel aims to forecast environmental instability up to several days in advance, enabling healthcare workers to take preventive action before unsafe storage conditions occur.
+
+The proposed system therefore contributes toward the development of resilient and intelligent healthcare infrastructure capable of improving vaccine safety, reducing spoilage, and strengthening healthcare reliability in low-resource environments.
+
+Table 5 Comparative Analysis of Existing Systems
+
+System/Study
+
+Real-Time Monitoring
+
+Cloud Support
+
+AI Prediction
+
+Multi-Sensor Monitoring
+
+Automatic Response
+
+Rural Healthcare Focus
+
+Kalisa & Tuyisenge [2]
+
+✅
+
+✅
+
+❌
+
+Partial
+
+❌
+
+✅
+
+Uwonkunda [3]
+
+✅
+
+✅
+
+❌
+
+Partial
+
+❌
+
+✅
+
+Tang et al. [4]
+
+✅
+
+❌
+
+❌
+
+✅
+
+❌
+
+❌
+
+Kumar & Verma [8]
+
+✅
+
+✅
+
+Partial
+
+Partial
+
+❌
+
+❌
+
+Harrabi et al. [12]
+
+✅
+
+✅
+
+✅
+
+Partial
+
+❌
+
+❌
+
+Mwangi et al. [9]
+
+✅
+
+✅
+
+❌
+
+Partial
+
+Partial
+
+✅
+
+Proposed System (ColdChain Sentinel)
+
+✅
+
+✅
+
+✅
+
+✅
+
+✅
+
+✅
+
+Table 6 Identified Research Gaps and Proposed Contributions
+
+Identified Research Gap
+
+Evidence from Literature
+
+Proposed Contribution
+
+Existing systems are reactive rather than predictive
+
+Alerts occur after unsafe conditions [2][3]
+
+AI-based predictive monitoring and forecasting
+
+Limited environmental monitoring
+
+Most systems focus mainly on temperature [4]
+
+Integration of temperature, humidity, and air quality monitoring
+
+Lack of intelligent decision-making
+
+Limited AI integration in vaccine preservation systems [12]
+
+AI-driven predictive analytics and anomaly detection
+
+Weak resilience in rural environments
+
+Power instability affects monitoring reliability [9]
+
+Resilient IoT architecture with proactive cooling control
+
+Limited focus on rural dispensaries in Rwanda
+
+Most systems target hospitals or general healthcare systems
+
+Rural healthcare-focused vaccine preservation system
+
+Lack of integrated intelligent systems
+
+Existing systems provide partial solutions
+
+Unified AI-IoT-cloud vaccine preservation platform
+
+CHAPTER 3: RESEARCH METHODOLOGY 
+
+3.1 INTRODUCTION
+
+This chapter presents the research methodology used in the development and implementation of the proposed ColdChain Sentinel system. The chapter explains the methods and procedures used to collect data, identify system requirements, design the system architecture, and develop the proposed AI-enhanced vaccine preservation platform. It also describes the hardware and software components required for system implementation, the project development methodology, and the implementation timeline.
+
+The methodology adopted in this research focuses on designing an intelligent vaccine preservation system capable of monitoring environmental conditions, predicting future storage risks, and supporting proactive intervention in rural healthcare facilities. The study integrates Internet of Things (IoT), Artificial Intelligence (AI), cloud computing, and environmental sensing technologies to improve vaccine safety and reduce cold chain failures.
+
+The research mainly focuses on rural dispensaries and health posts in Rwanda where vaccine preservation challenges such as unstable electricity, weak monitoring infrastructure, and delayed environmental response remain significant concerns. The proposed system is designed to provide real-time monitoring, predictive environmental analysis, automated alerts, and smart cooling control to improve vaccine preservation reliability.
+
+3.1.1 Site Description
+
+The study focuses on healthcare environments where vaccines are stored and preserved under controlled temperature conditions. Particular attention is given to rural dispensaries and healthcare centers in Rwanda because these facilities often experience challenges related to electricity instability, limited technological infrastructure, and inadequate cold chain monitoring systems.
+
+Many rural healthcare facilities still rely on manual vaccine monitoring approaches where healthcare workers periodically inspect refrigerator temperatures and manually record environmental conditions. These methods are often unreliable because they do not provide continuous supervision or predictive warning mechanisms. As a result, vaccines remain vulnerable to spoilage during refrigeration failure, environmental instability, or delayed intervention.
+
+The proposed ColdChain Sentinel system is intended to operate within vaccine storage rooms and refrigeration units found in dispensaries, health centers, and rural healthcare posts. The system continuously monitors environmental conditions including temperature, humidity, and air quality using connected sensors. Environmental data is transmitted through an ESP32 microcontroller to cloud platforms where Artificial Intelligence algorithms analyze environmental patterns and forecast future storage conditions.
+
+The selected study environment is suitable for this research because rural healthcare facilities represent one of the most vulnerable areas in vaccine preservation systems. The implementation of predictive healthcare technologies in these facilities can significantly improve vaccine safety, reduce wastage, and strengthen healthcare service delivery.
+
+3.2 DATA COLLECTION
+
+3.2.1 Primary Data
+
+During this phase, primary data was collected through observations, informal interviews, and environmental monitoring within healthcare-related storage environments. The purpose of collecting primary data was to understand the challenges associated with vaccine preservation, monitoring practices, refrigeration conditions, and environmental instability in healthcare facilities. Information collected included common causes of cold chain failure, monitoring approaches currently used, frequency of temperature fluctuations, and response procedures during refrigeration problems.
+
+Environmental sensor readings were also considered as part of the primary data collection process. Sample environmental data such as temperature, humidity, and air quality conditions were used to simulate healthcare monitoring conditions and support AI prediction model development.
+
+3.2.2 Secondary Data
+
+In this research, secondary data was collected from published journal articles, conference papers, WHO reports, dissertations, healthcare technology studies, and IoT healthcare monitoring research papers published between 2023 and 2026. Secondary data provided theoretical foundations, technological background, system design approaches, and previous research findings related to vaccine cold chain systems, IoT healthcare monitoring, AI prediction systems, cloud computing, and environmental sensing technologies.
+
+The combination of primary and secondary data helped identify system requirements, research gaps, technological limitations, and possible solutions for intelligent vaccine preservation systems.
+
+3.2.3 Sample Size
+
+The study targets healthcare personnel, dispensary staff, and healthcare monitoring environments associated with vaccine storage systems. A small purposive sample was selected to gather information related to cold chain monitoring challenges and environmental management practices.
+
+The sample included:
+
+Healthcare workers involved in vaccine management 
+
+Dispensary staff responsible for cold room supervision 
+
+Technical observations from healthcare refrigeration environments 
+
+Environmental sensor sample datasets 
+
+The sample size was considered sufficient because the research mainly focuses on system design and prototype development rather than large-scale statistical analysis.
+
+3.2.4 Data Description
+
+The data used in this research mainly consisted of:
+
+Temperature readings 
+
+Humidity levels 
+
+Air quality measurements 
+
+Environmental fluctuation patterns 
+
+Refrigeration behavior observations 
+
+Monitoring response procedures 
+
+Environmental data was collected or simulated using IoT sensor technologies to support system testing and AI prediction model development.
+
+3.2.5 Primary Data
+
+Primary data collection focused on understanding the real challenges associated with vaccine preservation systems. Observations showed that many healthcare facilities still rely on manual temperature monitoring approaches, which increase the risk of delayed intervention during refrigeration instability.
+
+Interviews and observations identified several major challenges including:
+
+Unstable electricity supply 
+
+Delayed temperature monitoring 
+
+Lack of predictive warning systems 
+
+Limited environmental sensing 
+
+Weak remote monitoring infrastructure 
+
+The environmental monitoring process also demonstrated that temperature fluctuations may occur unexpectedly during power interruptions or refrigeration instability, emphasizing the need for predictive healthcare systems capable of forecasting future environmental risks.
+
+3.2.6 Secondary Data
+
+Secondary data was obtained from:
+
+Scientific journals 
+
+IEEE conference papers 
+
+WHO healthcare reports 
+
+IoT healthcare monitoring studies 
+
+AI predictive healthcare research 
+
+Vaccine cold chain management literature 
+
+Secondary sources were used to:
+
+Review existing technologies 
+
+Compare previous systems 
+
+Identify research gaps 
+
+Understand healthcare monitoring architectures 
+
+Support system design decisions 
+
+The literature review findings strongly supported the need for predictive vaccine preservation systems integrating AI, IoT, cloud computing, and environmental sensing technologies.
+
+3.3 HARDWARE AND SOFTWARE REQUIREMENTS
+
+3.3.1 Hardware Requirements
+
+The proposed ColdChain Sentinel system requires several hardware components for environmental monitoring, data processing, communication, and cooling control.
+
+Table 7 Hardware Components
+
+Component
+
+Purpose
+
+ESP32 Microcontroller
+
+Processes sensor data and manages communication
+
+DHT22 Sensor
+
+Measures temperature and humidity
+
+MQ135 Sensor
+
+Measures air quality
+
+Cooling Fan/Relay Module
+
+Controls cooling response
+
+Power Supply Unit
+
+Provides electrical power
+
+Vaccine Refrigerator
+
+Vaccine storage environment
+
+LCD Display
+
+Displays local environmental readings
+
+3.3.2 Software Requirements
+
+The software requirements support data processing, monitoring, cloud communication, AI prediction, and dashboard visualization.
+
+Table 8 Software Components
+
+Software
+
+Purpose
+
+Arduino IDE
+
+Programming ESP32
+
+VS Code
+
+AI model Training
+
+TensorFlow / Scikit-learn
+
+Machine learning implementation
+
+Firebase / Cloud Platform
+
+Cloud database and monitoring
+
+Google Colab / Jupyter Notebook
+
+AI model training
+
+GitHub
+
+Version control and collaboration
+
+3.4 PROPOSED ARCHITECTURE
+
+The system begins with environmental sensors continuously monitoring temperature, humidity, and air quality conditions within vaccine storage environments. The collected data is transmitted to the ESP32 microcontroller, which processes and forwards the information to cloud servers through internet connectivity.
+
+The cloud platform stores and manages environmental data while simultaneously providing remote dashboard access for healthcare personnel. Artificial Intelligence algorithms analyze both historical and real-time sensor data to forecast future environmental conditions and identify potential storage risks several days in advance.
+
+When abnormal conditions are predicted or detected, the system automatically generates alerts and may activate cooling mechanisms to stabilize vaccine storage conditions proactively.
+
+3.5 SYSTEM REQUIREMENTS
+
+The proposed system requires both functional and non-functional requirements to ensure effective operation.
+
+3.5.1 Functional Requirements
+
+These are the necessary capabilities of the system: 
+
+The system must continuously collect data for temperature, humidity, and external air quality. 
+
+Collected data must be transmitted instantly to a central cloud database. 
+
+The system must predict future environmental conditions
+
+The system must generate and send instant alerts to staff if safety thresholds (e.g., outside 2°C and 8°C) are crossed [6].
+
+The cooling backup unit must automatically activate if the required temperature limits are exceeded. 
+
+A user-friendly web dashboard must visualize all real-time data and alerts.
+
+The system should store historical environmental data
+
+3.5.2 Non-Functional Requirements
+
+These define the quality and performance attributes: 
+
+Resilience: The system must be robust enough to ensure continuous monitoring and operation, especially during frequent power outages in rural areas. 
+
+Reliability: The monitoring must be trustworthy to guarantee vaccine safety. 
+
+Performance: The system must send instant notifications to enable the fastest possible response to cold chain emergencies. 
+
+Power Efficiency: The design must allow the system to operate efficiently using renewable energy or backup power, making it suitable for off-grid rural health centers.
+
+Scalability: The system should be capable of expanding to monitor multiple vaccine refrigerators, dispensaries, or healthcare facilities without significantly affecting performance.
+
+Accuracy: The system should accurately analyze sensor data and forecast future temperature and environmental changes to help prevent vaccine spoilage before unsafe conditions occur.
+
+3.6 PROJECT DEVELOPMENT METHODOLOGY
+
+This study adopts the Agile system development methodology because it supports iterative development, flexibility, testing, and continuous improvement throughout system implementation.
+
+The Agile methodology was selected because the project integrates multiple technologies including IoT, AI, cloud computing, and environmental sensing. Agile allows system components to be developed, tested, and improved incrementally.
+
+The development process includes:
+
+Requirement analysis 
+
+System design 
+
+Hardware integration 
+
+Software development 
+
+AI model training 
+
+System testing 
+
+Deployment and evaluation 
+
+Frequent testing and evaluation help ensure that the system performs correctly under simulated healthcare monitoring conditions.
+
+3.7 IMPLEMENTATION TIMELINE
+
+The project implementation timeline outlines the planned activities and development phases for the ColdChain Sentinel system.
+
+Table 9 Implementation Timeline
+
+Phase
+
+Activity
+
+Duration
+
+Phase 1
+
+Literature Review and Requirement Analysis
+
+2 Weeks
+
+Phase 2
+
+System Design and Architecture Development
+
+2 Weeks
+
+Phase 3
+
+Hardware Integration and Sensor Setup
+
+3 Weeks
+
+Phase 4
+
+Cloud Platform and Dashboard Development
+
+2 Weeks
+
+Phase 5
+
+AI Model Development and Training
+
+3 Weeks
+
+Phase 6
+
+System Testing and Evaluation
+
+2 Weeks
+
+Phase 7
+
+Documentation and Final Report Preparation
+
+2 Weeks
+
+CHAPTER 4: DESIGN AND IMPLEMENTATION [at least 8 pages, with subsections depending on your research technologies]
+
+4.1 INTRODUCTION 
+
+4.2 SYSTEM MODEL/ARCHITECTURE DESIGN 
+
+4.2.1 SYSTEM ARCHITECTURE
+
+4.2.2 CLASS DIAGRAM
+
+4.2.3 DEPLOYMENT DIAGRAM
+
+4.2.4 DATA FLOW DIAGRAM (DFD) 
+
+4.2.5 SEQUENCE DIAGRAM.  ..
+
+4.2.6 API DESIGN   
+
+4.3 COMPARISON IN DESIGN OF VARIOUS MODELS (IF ANY AI MODELS USED) AND THE PROPOSED ONE
+
+4.4.1 CONVOLUTIONAL NEURAL NETWORKS (CNNS) FOR EXAMPLE
+
+4.4.2 VISION TRANSFORMERS (VITS) FOR EXAMPLE
+
+4.5 COMPARATIVE ANALYSIS 
+
+CHAPTER 5: DISCUSSION OF THE RESULTS [at least 10 pages, with subsections depending on your research technologies]
+
+5.1 DISCUSSIONS OF THE PARAMETERS USED AND THEIR UNITS
+
+5.2 DISCUSSION OF RESULTANT TABLES, GRAPHS, FIGURES, AND DIAGRAMS OF THE PROPOSED SYSTEM
+
+5.2.1 Data Preprocessing 
+
+5.2.2 Confusion Matrix
+
+5.2.3 Training and Validation Accuracy Graph
+
+5.2.4 Training and Validation Loss Graph
+
+5.2.5 Comparison Table
+
+5.3 DISCUSSION OF OVERALL OUTCOMES/OUTPUTS/RESULTS
+
+5.3.2.1 Web Authentication
+
+5.4 A SUMMARY OF THE PROPOSED PRODUCT
+
+CHAPTER 6: CONCLUSION AND RECOMMENDATION [1 page]
+
+ 
+
+REFERENCES [Survey at least 30 journals published between 2023-2026, use IEEE format and include DoIs]
+
+ 
+
+APPENDICES (IF you have used questionnaires)

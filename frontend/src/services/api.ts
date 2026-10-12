@@ -114,6 +114,16 @@ export const api = {
   // Predictions
   getPredictions: (deviceId: string) => req(`/predictions/${deviceId}`),
 
+  // AI
+  getAIRecommendation: (fridgeId: string) => req<{ recommendation: string }>('/ai/recommendation', {
+    method: 'POST',
+    body: JSON.stringify({ fridgeId }),
+  }),
+  sendAIChat: (history: Array<{ sender: 'user' | 'ai'; text: string }>, message: string) => req<{ response: string }>('/ai/chat', {
+    method: 'POST',
+    body: JSON.stringify({ history, message }),
+  }),
+
   // OTP verification (no auth token needed)
   verifyOTP: (email: string, otp: string) =>
     req('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ email, otp }) }),

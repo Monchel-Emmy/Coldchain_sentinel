@@ -6,7 +6,7 @@ import { Role as RoleModel } from '../models/Role';
 export function configurePassport() {
   const clientID     = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const callbackURL  = process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/auth/google/callback';
+  const callbackURL  = (process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/auth/google/callback').replace(/\/+$/, '');
 
   if (!clientID || !clientSecret) {
     console.warn('⚠️  Google OAuth not configured — GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET missing in .env');

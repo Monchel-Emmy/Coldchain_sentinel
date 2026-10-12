@@ -1,5 +1,6 @@
 import { Settings as SettingsIcon, Bell, Smartphone, Globe, Shield } from 'lucide-react';
 import { useState } from 'react';
+import { usePermission } from '../hooks/useRBAC';
 
 export default function Settings() {
   const [notifEmail, setNotifEmail] = useState(true);
@@ -8,6 +9,8 @@ export default function Settings() {
   const [phone, setPhone] = useState('');
   const [refreshInterval, setRefreshInterval] = useState('5');
   const [saved, setSaved] = useState(false);
+
+  const hasView = usePermission('settings:view');
 
   const save = () => {
     setSaved(true);
@@ -19,6 +22,18 @@ export default function Settings() {
       <span className={`block w-5 h-5 bg-white rounded-full shadow transition-transform mx-0.5 ${value ? 'translate-x-5' : 'translate-x-0'}`} />
     </button>
   );
+
+  if (!hasView) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 p-8 text-center max-w-lg mx-auto my-12">
+        <div className="w-14 h-14 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <SettingsIcon size={28} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800">Access Denied</h2>
+        <p className="text-sm text-slate-500 mt-2">You do not have permission to view or modify settings. Please contact your administrator if you require access.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5 max-w-2xl">

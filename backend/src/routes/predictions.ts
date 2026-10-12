@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import { Device as DeviceModel } from '../models/Device';
 import { Fridge as FridgeModel } from '../models/Fridge';
+import { SensorReading as SensorReadingModel } from '../models/SensorReading';
+import { isConnected } from '../db';
 import { readingsHistory } from '../data/mockStore';
-import { authenticate, AuthRequest } from '../middleware/auth';
+import { authenticate, getHCFilter, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 router.use(authenticate);
@@ -35,13 +37,24 @@ router.get('/:deviceId', async (req: AuthRequest, res) => {
   // Look up device by MongoDB _id
   const dbDevice = await DeviceModel.findById(deviceId).lean().catch(() => null);
   if (!dbDevice) return res.status(404).json({ error: 'Device not found' });
+
+  const hcFilter = getHCFilter(req);
+  if (hcFilter && String(dbDevice.healthCenterId) !== String(hcFilter)) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
   
   const deviceName = dbDevice.name;
   const dbFridge = await FridgeModel.findById(dbDevice.fridgeId).lean().catch(() => null);
   const fridgeName = dbFridge?.name || '';
 
-  // Readings are cached in memory keyed by device ID (MongoDB _id string when DB is connected)
-  const history = readingsHistory.get(deviceId) || [];
+  // Readings are loaded from MongoDB if connected, otherwise fallback to cache
+  let history: any[] = [];
+  if (isConnected()) {
+    history = await SensorReadingModel.find({ deviceId }).sort({ timestamp: 1 }).lean();
+  } else {
+    history = readingsHistory.get(deviceId) || [];
+  }
+  
   if (history.length < 10) {
     return res.status(400).json({ error: 'Not enough historical data for predictions. Wait a few minutes for readings to accumulate.' });
   }

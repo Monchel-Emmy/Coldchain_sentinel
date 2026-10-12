@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { User as UserModel } from '../models/User';
 import { Role as RoleModel } from '../models/Role';
 import { HealthCenter } from '../models/HealthCenter';
-import { authenticate, requirePermission, AuthRequest } from '../middleware/auth';
+import { authenticate, requirePermission, getHCFilter, AuthRequest } from '../middleware/auth';
 import { Types } from 'mongoose';
 
 const router = Router();
@@ -13,8 +13,10 @@ function isObjectId(id: string): boolean {
   return Types.ObjectId.isValid(id) && String(new Types.ObjectId(id)) === id;
 }
 
-router.get('/', requirePermission('users:view'), async (_req, res) => {
-  const users = await UserModel.find().lean();
+router.get('/', requirePermission('users:view'), async (req, res) => {
+  const hcFilter = getHCFilter(req as AuthRequest);
+  const query = hcFilter ? { healthCenterId: hcFilter } : {};
+  const users = await UserModel.find(query).lean();
   const result = await Promise.all(users.map(async u => {
     const role = await RoleModel.findById(u.roleId).lean();
     const hc   = u.healthCenterId ? await HealthCenter.findById(u.healthCenterId).lean() : null;
@@ -37,6 +39,13 @@ router.get('/', requirePermission('users:view'), async (_req, res) => {
 router.post('/', requirePermission('users:create'), async (req, res) => {
   const { name, email, password, roleId, healthCenterId, status } = req.body;
   if (!name || !email || !roleId) return res.status(400).json({ error: 'Name, email and role are required' });
+
+  const hcFilter = getHCFilter(req as AuthRequest);
+  if (hcFilter) {
+    if (healthCenterId !== hcFilter) {
+      return res.status(403).json({ error: 'Cannot create user in another health center' });
+    }
+  }
 
   const existing = await UserModel.findOne({ email: email.toLowerCase() });
   if (existing) return res.status(409).json({ error: 'Email already exists' });
@@ -66,6 +75,17 @@ router.post('/', requirePermission('users:create'), async (req, res) => {
 
 router.put('/:id', requirePermission('users:edit'), async (req, res) => {
   const { name, email, roleId, healthCenterId, status } = req.body;
+
+  const hcFilter = getHCFilter(req as AuthRequest);
+  if (hcFilter) {
+    const targetUser = await UserModel.findById(req.params.id).lean();
+    if (!targetUser || String(targetUser.healthCenterId) !== String(hcFilter)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    if (healthCenterId && healthCenterId !== hcFilter) {
+      return res.status(403).json({ error: 'Cannot assign user to another health center' });
+    }
+  }
 
   const update: any = {};
   if (name)   update.name   = name;
@@ -102,6 +122,13 @@ router.put('/:id', requirePermission('users:edit'), async (req, res) => {
 });
 
 router.delete('/:id', requirePermission('users:delete'), async (req, res) => {
+  const hcFilter = getHCFilter(req as AuthRequest);
+  if (hcFilter) {
+    const targetUser = await UserModel.findById(req.params.id).lean();
+    if (!targetUser || String(targetUser.healthCenterId) !== String(hcFilter)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+  }
   await UserModel.findByIdAndDelete(req.params.id);
   res.json({ success: true });
 });

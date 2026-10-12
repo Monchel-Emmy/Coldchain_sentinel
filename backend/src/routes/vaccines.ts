@@ -94,14 +94,28 @@ router.post('/', requirePermission('vaccines:create'), async (req, res) => {
 });
 
 router.put('/:id', requirePermission('vaccines:edit'), async (req, res) => {
+  const hcFilter = getHCFilter(req as AuthRequest);
+  const existing = await Vaccine.findById(req.params.id).lean();
+  if (!existing) return res.status(404).json({ error: 'Vaccine not found' });
+  if (hcFilter && String(existing.healthCenterId) !== String(hcFilter)) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  if (hcFilter && req.body.healthCenterId && req.body.healthCenterId !== hcFilter) {
+    return res.status(403).json({ error: 'Cannot assign to another health center' });
+  }
   const v = await Vaccine.findByIdAndUpdate(req.params.id, req.body, { new: true }).lean();
   if (!v) return res.status(404).json({ error: 'Vaccine not found' });
   res.json({ ...v, id: v._id });
 });
 
 router.delete('/:id', requirePermission('vaccines:delete'), async (req, res) => {
-  const v = await Vaccine.findByIdAndDelete(req.params.id);
-  if (!v) return res.status(404).json({ error: 'Vaccine not found' });
+  const hcFilter = getHCFilter(req as AuthRequest);
+  const existing = await Vaccine.findById(req.params.id).lean();
+  if (!existing) return res.status(404).json({ error: 'Vaccine not found' });
+  if (hcFilter && String(existing.healthCenterId) !== String(hcFilter)) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  await Vaccine.findByIdAndDelete(req.params.id);
   res.json({ success: true });
 });
 

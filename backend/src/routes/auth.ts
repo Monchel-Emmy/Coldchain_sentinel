@@ -238,13 +238,15 @@ router.get('/google',
   passport.authenticate('google', { scope: ['profile', 'email'], session: false })
 );
 
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, '');
+
 // Step 2: Google callback — issue JWT and redirect to frontend
 router.get('/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=google_failed` }),
+  passport.authenticate('google', { session: false, failureRedirect: `${FRONTEND_URL}/login?error=google_failed` }),
   async (req: Request, res: Response) => {
     try {
       const user = req.user as any;
-      if (!user) return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=no_user`);
+      if (!user) return res.redirect(`${FRONTEND_URL}/login?error=no_user`);
 
       await UserModel.findByIdAndUpdate(user._id, { lastLogin: new Date() });
 
@@ -253,11 +255,10 @@ router.get('/google/callback',
 
       // Redirect to frontend with token in query param
       // Frontend will pick it up and store in localStorage
-      const frontendURL = process.env.FRONTEND_URL || 'http://localhost:3000';
-      res.redirect(`${frontendURL}/auth/callback?token=${token}`);
+      res.redirect(`${FRONTEND_URL}/auth/callback?token=${token}`);
     } catch (err) {
       console.error('Google callback error:', err);
-      res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=server_error`);
+      res.redirect(`${FRONTEND_URL}/login?error=server_error`);
     }
   }
 );

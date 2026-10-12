@@ -4,6 +4,7 @@ import { api } from '../services/api';
 import { Device, DeviceControl, HealthCenter, Fridge } from '../types';
 import Modal from '../components/Modal';
 import PageLoader from '../components/PageLoader';
+import { usePermission, usePermissions, useHealthCenterScope } from '../hooks/useRBAC';
 
 const statusBadge: Record<string, string> = {
   online: 'bg-green-100 text-green-700',
@@ -25,15 +26,20 @@ export default function Devices() {
   const [controls, setControls] = useState<Record<string, DeviceControl>>({});
   const [loading, setLoading] = useState(true);
 
+  const hcScope = useHealthCenterScope();
+  const hasView = usePermission('devices:view');
+  const perms = usePermissions(['devices:create', 'devices:edit', 'devices:delete', 'controls:operate']);
+
   const load = () => {
     setLoading(true);
+    const effectiveHC = hcScope || undefined;
     Promise.all([
-      api.getDevices().then((d: any) => setDevices(d)),
+      api.getDevices({ healthCenterId: effectiveHC }).then((d: any) => setDevices(d)),
       api.getHealthCenters().then((d: any) => setCenters(d)),
-      api.getFridges().then((d: any) => setFridges(d)),
+      api.getFridges(effectiveHC).then((d: any) => setFridges(d)),
     ]).catch(console.error).finally(() => setLoading(false));
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [hcScope]);
 
   useEffect(() => {
     setAvailableFridges(form.healthCenterId ? fridges.filter(f => f.healthCenterId === form.healthCenterId) : fridges);
@@ -76,6 +82,22 @@ export default function Devices() {
   const f = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }));
   const ctrl = showControl ? controls[showControl.id] : null;
 
+  if (!hasView) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 p-8 text-center max-w-lg mx-auto my-12">
+        <div className="w-14 h-14 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Cpu size={28} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800">Access Denied</h2>
+        <p className="text-sm text-slate-500 mt-2">You do not have permission to view or manage IoT Sensors. Please contact your administrator if you require access.</p>
+      </div>
+    );
+  }
+
+  const canAction = perms['devices:edit'] || perms['devices:delete'] || perms['controls:operate'];
+  const headers = ['Sensor', 'Fridge', 'Health Center', 'IP Address', 'Firmware', 'Status'];
+  if (canAction) headers.push('Actions');
+
   if (loading) return <PageLoader message="Loading IoT sensors..." />;
 
   return (
@@ -85,17 +107,19 @@ export default function Devices() {
           <h1 className="text-xl font-bold text-slate-800">IoT Sensors</h1>
           <p className="text-sm text-slate-500">Manage sensors assigned to fridges</p>
         </div>
-        <button onClick={() => { setEditDevice(null); setForm({ ...emptyForm }); setShowForm(true); }}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
-          <Plus size={16} /> Register Sensor
-        </button>
+        {perms['devices:create'] && (
+          <button onClick={() => { setEditDevice(null); setForm({ ...emptyForm, healthCenterId: hcScope || '' }); setShowForm(true); }}
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
+            <Plus size={16} /> Register Sensor
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              {['Sensor', 'Fridge', 'Health Center', 'IP Address', 'Firmware', 'Status', 'Actions'].map(h => (
+              {headers.map(h => (
                 <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
               ))}
             </tr>
@@ -119,13 +143,21 @@ export default function Devices() {
                 <td className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge[dev.status]}`}>{dev.status}</span>
                 </td>
-                <td className="px-4 py-3">
-                  <div className="flex gap-1">
-                    <button onClick={() => openControl(dev)} title="Controls" className="p-1.5 rounded hover:bg-blue-50 text-blue-600"><Power size={14} /></button>
-                    <button onClick={() => handleEdit(dev)} className="p-1.5 rounded hover:bg-slate-100 text-slate-600"><Pencil size={14} /></button>
-                    <button onClick={() => handleDelete(dev.id)} className="p-1.5 rounded hover:bg-red-50 text-red-500"><Trash2 size={14} /></button>
-                  </div>
-                </td>
+                {canAction && (
+                  <td className="px-4 py-3">
+                    <div className="flex gap-1">
+                      {perms['controls:operate'] && (
+                        <button onClick={() => openControl(dev)} title="Controls" className="p-1.5 rounded hover:bg-blue-50 text-blue-600"><Power size={14} /></button>
+                      )}
+                      {perms['devices:edit'] && (
+                        <button onClick={() => handleEdit(dev)} className="p-1.5 rounded hover:bg-slate-100 text-slate-600"><Pencil size={14} /></button>
+                      )}
+                      {perms['devices:delete'] && (
+                        <button onClick={() => handleDelete(dev.id)} className="p-1.5 rounded hover:bg-red-50 text-red-500"><Trash2 size={14} /></button>
+                      )}
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -151,7 +183,8 @@ export default function Devices() {
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Health Center</label>
               <select value={form.healthCenterId} onChange={e => f('healthCenterId', e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                disabled={!!hcScope}>
                 <option value="">Select...</option>
                 {centers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>

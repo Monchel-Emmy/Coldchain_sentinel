@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import { Vaccine, HealthCenter, Fridge, VaccineStats } from '../types';
 import Modal from '../components/Modal';
 import StatCard from '../components/StatCard';
-import { usePermissions, useHealthCenterScope } from '../hooks/useRBAC';
+import { usePermission, usePermissions, useHealthCenterScope } from '../hooks/useRBAC';
 import PageLoader from '../components/PageLoader';
 
 const statusBadge: Record<string, string> = {
@@ -43,6 +43,7 @@ export default function Vaccines() {
   const [loading, setLoading] = useState(true);
 
   const hcScope = useHealthCenterScope();
+  const hasView = usePermission('vaccines:view');
   const perms = usePermissions(['vaccines:create', 'vaccines:edit', 'vaccines:delete']);
 
   const load = () => {
@@ -62,7 +63,7 @@ export default function Vaccines() {
     setAvailableFridges(form.healthCenterId ? fridges.filter(f => f.healthCenterId === form.healthCenterId) : fridges);
   }, [form.healthCenterId, fridges]);
 
-  const openCreate = () => { setEditItem(null); setForm({ ...emptyForm }); setShowForm(true); };
+  const openCreate = () => { setEditItem(null); setForm({ ...emptyForm, healthCenterId: hcScope || '' }); setShowForm(true); };
   const openEdit = (v: Vaccine) => {
     setEditItem(v);
     setForm({
@@ -105,6 +106,18 @@ export default function Vaccines() {
   const fs = (k: string, v: string) => setForm(p => ({ ...p, storageRequirements: { ...p.storageRequirements, [k]: v } }));
 
   if (loading) return <PageLoader message="Loading vaccines..." />;
+
+  if (!hasView) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 p-8 text-center max-w-lg mx-auto my-12">
+        <div className="w-14 h-14 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <CheckCircle2 size={28} className="text-red-500" />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800">Access Denied</h2>
+        <p className="text-sm text-slate-500 mt-2">You do not have permission to view or manage Vaccines inventory. Please contact your administrator if you require access.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -258,7 +271,8 @@ export default function Vaccines() {
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Health Center *</label>
               <select value={form.healthCenterId} onChange={e => f('healthCenterId', e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                disabled={!!hcScope}>
                 <option value="">Select...</option>
                 {centers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>

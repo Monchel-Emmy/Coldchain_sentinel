@@ -4,6 +4,7 @@ import { Device, PredictionResult } from '../types';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { BrainCircuit, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
+import { usePermission, useHealthCenterScope } from '../hooks/useRBAC';
 
 const trendIcon = (t: string) =>
   t === 'rising' ? <TrendingUp size={16} className="text-red-500" /> :
@@ -17,12 +18,15 @@ export default function Predictions() {
   const [loading, setLoading] = useState(false);
   const [initLoading, setInitLoading] = useState(true);
 
+  const hcScope = useHealthCenterScope();
+  const hasView = usePermission('predictions:view');
+
   useEffect(() => {
-    api.getDevices().then((d: any) => {
+    api.getDevices({ healthCenterId: hcScope || undefined }).then((d: any) => {
       setDevices(d);
       if (d.length > 0) setSelectedDevice(d[0].id);
     }).catch(console.error).finally(() => setInitLoading(false));
-  }, []);
+  }, [hcScope]);
 
   useEffect(() => {
     if (!selectedDevice) return;
@@ -46,6 +50,18 @@ export default function Predictions() {
   ] : [];
 
   const splitIndex = result?.historicalSample.length ?? 0;
+
+  if (!hasView) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 p-8 text-center max-w-lg mx-auto my-12">
+        <div className="w-14 h-14 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <BrainCircuit size={28} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800">Access Denied</h2>
+        <p className="text-sm text-slate-500 mt-2">You do not have permission to view AI Predictions. Please contact your administrator if you require access.</p>
+      </div>
+    );
+  }
 
   if (initLoading) return <PageLoader message="Loading prediction engine..." />;
 

@@ -17,11 +17,13 @@ router.get('/stats', async (req, res) => {
 
   const query: any = {};
   if (hcFilter) query.healthCenterId = hcFilter;
+
+  const hcQuery = hcFilter ? { _id: hcFilter } : {};
   
   const [vaccines, devices, healthCenters, alerts] = await Promise.all([
     Vaccine.find(query).lean(),
     Device.find(query).lean(),
-    HealthCenter.find(query).lean(),
+    HealthCenter.find(hcQuery).lean(),
     Alert.find(query).lean(),
   ]);
 

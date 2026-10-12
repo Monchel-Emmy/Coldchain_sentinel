@@ -5,6 +5,7 @@ import { Fridge, HealthCenter, Device, DeviceControl } from '../types';
 import Modal from '../components/Modal';
 import { useLive } from '../components/Layout';
 import PageLoader from '../components/PageLoader';
+import { usePermission, usePermissions, useHealthCenterScope } from '../hooks/useRBAC';
 
 const typeLabel: Record<string, string> = {
   refrigerator: 'Refrigerator',
@@ -43,22 +44,27 @@ export default function Fridges() {
   const [loading, setLoading] = useState(true);
   const { readings } = useLive();
 
+  const hcScope = useHealthCenterScope();
+  const hasView = usePermission('fridges:view');
+  const perms = usePermissions(['fridges:create', 'fridges:edit', 'fridges:delete', 'devices:create', 'controls:operate']);
+
   const load = () => {
+    const effectiveHC = hcScope || filterHC || undefined;
     setLoading(true);
     Promise.all([
-      api.getFridges(filterHC || undefined).then((d: any) => setFridges(d)),
+      api.getFridges(effectiveHC).then((d: any) => setFridges(d)),
       api.getHealthCenters().then((d: any) => setCenters(d)),
-      api.getRooms().then((d: any) => setRooms(d ?? [])),
+      api.getRooms(effectiveHC).then((d: any) => setRooms(d ?? [])),
     ]).catch(console.error).finally(() => setLoading(false));
   };
-  useEffect(() => { load(); }, [filterHC]);
+  useEffect(() => { load(); }, [filterHC, hcScope]);
 
   // Filter rooms by selected health center in form
   useEffect(() => {
     setAvailableRooms(form.healthCenterId ? rooms.filter((r: any) => r.healthCenterId === form.healthCenterId) : rooms);
   }, [form.healthCenterId, rooms]);
 
-  const openCreate = () => { setEditItem(null); setForm({ ...emptyForm }); setShowForm(true); };
+  const openCreate = () => { setEditItem(null); setForm({ ...emptyForm, healthCenterId: hcScope || '' }); setShowForm(true); };
   const openEdit = (fr: Fridge) => {
     setEditItem(fr);
     setForm({ name: fr.name, healthCenterId: fr.healthCenterId, roomId: (fr as any).roomId || '', modelName: fr.modelName, serialNumber: fr.serialNumber, type: fr.type, targetTempMin: String(fr.targetTempMin), targetTempMax: String(fr.targetTempMax), targetHumidityMin: String(fr.targetHumidityMin), targetHumidityMax: String(fr.targetHumidityMax), status: fr.status });
@@ -117,6 +123,22 @@ export default function Fridges() {
     return { ...fridge, currentTemp: live.temperature, currentHumidity: live.humidity, lastUpdated: live.timestamp };
   });
 
+  if (!hasView) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 p-8 text-center max-w-lg mx-auto my-12">
+        <div className="w-14 h-14 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Thermometer size={28} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800">Access Denied</h2>
+        <p className="text-sm text-slate-500 mt-2">You do not have permission to view or manage Refrigerator/Freezer units. Please contact your administrator if you require access.</p>
+      </div>
+    );
+  }
+
+  const canAction = perms['fridges:edit'] || perms['fridges:delete'] || perms['controls:operate'];
+  const headers = ['Fridge', 'Health Center', 'Type', 'Target Temp', 'Current Temp', 'Sensor', 'Status'];
+  if (canAction) headers.push('Actions');
+
   if (loading) return <PageLoader message="Loading fridges & freezers..." />;
 
   return (
@@ -126,22 +148,26 @@ export default function Fridges() {
           <h1 className="text-xl font-bold text-slate-800">Fridges & Freezers</h1>
           <p className="text-sm text-slate-500">{fridges.length} cold storage unit(s) — each health center can have multiple fridges</p>
         </div>
-        <button onClick={openCreate} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
-          <Plus size={16} /> Add Fridge
-        </button>
+        {perms['fridges:create'] && (
+          <button onClick={openCreate} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
+            <Plus size={16} /> Add Fridge
+          </button>
+        )}
       </div>
 
-      <select value={filterHC} onChange={e => setFilterHC(e.target.value)}
-        className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
-        <option value="">All Health Centers</option>
-        {centers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-      </select>
+      {!hcScope && (
+        <select value={filterHC} onChange={e => setFilterHC(e.target.value)}
+          className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white mb-3">
+          <option value="">All Health Centers</option>
+          {centers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+      )}
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              {['Fridge', 'Health Center', 'Type', 'Target Temp', 'Current Temp', 'Sensor', 'Status', 'Actions'].map(h => (
+              {headers.map(h => (
                 <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
               ))}
             </tr>
@@ -176,10 +202,12 @@ export default function Fridges() {
                         <span className={`w-2 h-2 rounded-full ${deviceDot[dev.status]}`} />
                         <span className="text-xs text-slate-600">{dev.name}</span>
                       </div>
-                    ) : (
+                    ) : perms['devices:create'] ? (
                       <button onClick={() => openDeviceForm(fridge)} className="text-xs text-blue-600 hover:underline flex items-center gap-1">
                         <Plus size={12} /> Assign sensor
                       </button>
+                    ) : (
+                      <span className="text-slate-400 text-xs">—</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
@@ -187,15 +215,21 @@ export default function Fridges() {
                       {fridge.status === 'operational' ? 'Operational' : fridge.status === 'maintenance' ? 'Maintenance' : 'Defective'}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      {dev && (
-                        <button onClick={() => openControl(fridge, dev)} title="Controls" className="p-1.5 rounded hover:bg-blue-50 text-blue-600"><Power size={14} /></button>
-                      )}
-                      <button onClick={() => openEdit(fridge)} className="p-1.5 rounded hover:bg-slate-100 text-slate-600"><Pencil size={14} /></button>
-                      <button onClick={() => handleDelete(fridge.id)} className="p-1.5 rounded hover:bg-red-50 text-red-500"><Trash2 size={14} /></button>
-                    </div>
-                  </td>
+                  {canAction && (
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        {dev && perms['controls:operate'] && (
+                          <button onClick={() => openControl(fridge, dev)} title="Controls" className="p-1.5 rounded hover:bg-blue-50 text-blue-600"><Power size={14} /></button>
+                        )}
+                        {perms['fridges:edit'] && (
+                          <button onClick={() => openEdit(fridge)} className="p-1.5 rounded hover:bg-slate-100 text-slate-600"><Pencil size={14} /></button>
+                        )}
+                        {perms['fridges:delete'] && (
+                          <button onClick={() => handleDelete(fridge.id)} className="p-1.5 rounded hover:bg-red-50 text-red-500"><Trash2 size={14} /></button>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               );
             })}
@@ -216,7 +250,8 @@ export default function Fridges() {
             <div>
               <label className="block text-xs font-medium text-slate-600 mb-1">Health Center *</label>
               <select value={form.healthCenterId} onChange={e => f('healthCenterId', e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                disabled={!!hcScope}>
                 <option value="">Select...</option>
                 {centers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>

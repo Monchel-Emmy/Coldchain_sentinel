@@ -3,6 +3,7 @@ import { Bell, CheckCheck, AlertTriangle, AlertCircle, Info } from 'lucide-react
 import { api } from '../services/api';
 import { Alert } from '../types';
 import PageLoader from '../components/PageLoader';
+import { usePermission } from '../hooks/useRBAC';
 
 const severityIcon: Record<string, any> = {
   critical: <AlertCircle size={16} className="text-red-500" />,
@@ -22,6 +23,9 @@ export default function Alerts() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [filter, setFilter] = useState<'all' | 'active' | 'acknowledged'>('active');
   const [loading, setLoading] = useState(true);
+
+  const hasView = usePermission('alerts:view');
+  const canAck = usePermission('alerts:acknowledge');
 
   const load = () => {
     const params = filter === 'active' ? { acknowledged: false } : filter === 'acknowledged' ? { acknowledged: true } : {};
@@ -43,6 +47,18 @@ export default function Alerts() {
 
   const activeCount = alerts.filter(a => !a.acknowledged).length;
 
+  if (!hasView) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 p-8 text-center max-w-lg mx-auto my-12">
+        <div className="w-14 h-14 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Bell size={28} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800">Access Denied</h2>
+        <p className="text-sm text-slate-500 mt-2">You do not have permission to view system alerts. Please contact your administrator if you require access.</p>
+      </div>
+    );
+  }
+
   if (loading) return <PageLoader message="Loading alerts..." />;
 
   return (
@@ -59,7 +75,7 @@ export default function Alerts() {
               {f}
             </button>
           ))}
-          {filter !== 'acknowledged' && activeCount > 0 && (
+          {filter !== 'acknowledged' && activeCount > 0 && canAck && (
             <button onClick={acknowledgeAll} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700">
               <CheckCheck size={15} /> Acknowledge All
             </button>
@@ -87,7 +103,7 @@ export default function Alerts() {
               <p className="text-sm font-medium text-slate-800 mt-1">{alert.message}</p>
               <p className="text-xs text-slate-400 mt-0.5">{new Date(alert.createdAt).toLocaleString()}</p>
             </div>
-            {!alert.acknowledged && (
+            {!alert.acknowledged && canAck && (
               <button onClick={() => acknowledge(alert.id)} className="flex-shrink-0 text-xs px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600">
                 Acknowledge
               </button>

@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import { User, Role, HealthCenter } from '../types';
 import Modal from '../components/Modal';
 import PageLoader from '../components/PageLoader';
-import { usePermissions } from '../hooks/useRBAC';
+import { usePermission, usePermissions, useHealthCenterScope } from '../hooks/useRBAC';
 
 const statusBadge: Record<string, string> = {
   active:   'bg-green-100 text-green-700',
@@ -14,6 +14,7 @@ const statusBadge: Record<string, string> = {
 const emptyForm = { name: '', email: '', password: '', roleId: '', healthCenterId: '', status: 'active' };
 
 export default function Users() {
+  const hcScope = useHealthCenterScope();
   const [users, setUsers]     = useState<User[]>([]);
   const [roles, setRoles]     = useState<Role[]>([]);
   const [centers, setCenters] = useState<HealthCenter[]>([]);
@@ -24,6 +25,7 @@ export default function Users() {
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
 
+  const hasView = usePermission('users:view');
   const perms = usePermissions(['users:create', 'users:edit', 'users:delete']);
 
   const load = () => {
@@ -38,7 +40,7 @@ export default function Users() {
 
   const openCreate = () => {
     setEditUser(null);
-    setForm({ ...emptyForm });
+    setForm({ ...emptyForm, healthCenterId: hcScope || '' });
     setError('');
     setShowForm(true);
   };
@@ -82,6 +84,18 @@ export default function Users() {
   const needsHC = selectedRole && selectedRole.name !== 'Super Admin';
 
   if (loading) return <PageLoader message="Loading users..." />;
+
+  if (!hasView) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 p-8 text-center max-w-lg mx-auto my-12">
+        <div className="w-14 h-14 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Building2 size={28} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800">Access Denied</h2>
+        <p className="text-sm text-slate-500 mt-2">You do not have permission to view or manage User accounts. Please contact your administrator if you require access.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -185,7 +199,9 @@ export default function Users() {
               <select value={form.roleId} onChange={e => f('roleId', e.target.value)}
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
                 <option value="">Select role...</option>
-                {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                {roles
+                  .filter(r => !hcScope || r.name !== 'Super Admin')
+                  .map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
             </div>
 
@@ -199,7 +215,8 @@ export default function Users() {
                 }
               </label>
               <select value={form.healthCenterId} onChange={e => f('healthCenterId', e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white">
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white"
+                disabled={!!hcScope}>
                 <option value="">— All health centers —</option>
                 {centers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>

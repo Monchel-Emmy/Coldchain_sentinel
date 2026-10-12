@@ -47,12 +47,20 @@ router.post('/', requirePermission('health_centers:create'), async (req, res) =>
 });
 
 router.put('/:id', requirePermission('health_centers:edit'), async (req, res) => {
+  const hcFilter = getHCFilter(req as AuthRequest);
+  if (hcFilter && hcFilter !== req.params.id) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
   const hc = await HealthCenter.findByIdAndUpdate(req.params.id, req.body, { new: true }).lean();
   if (!hc) return res.status(404).json({ error: 'Health center not found' });
   res.json({ ...hc, id: hc._id });
 });
 
 router.delete('/:id', requirePermission('health_centers:delete'), async (req, res) => {
+  const hcFilter = getHCFilter(req as AuthRequest);
+  if (hcFilter && hcFilter !== req.params.id) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
   const hc = await HealthCenter.findByIdAndDelete(req.params.id);
   if (!hc) return res.status(404).json({ error: 'Health center not found' });
   

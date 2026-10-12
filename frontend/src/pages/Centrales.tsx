@@ -3,7 +3,7 @@ import { Plus, Pencil, Trash2, Building2, Phone, MapPin, Thermometer, Cpu, Refre
 import { api } from '../services/api';
 import { HealthCenter } from '../types';
 import Modal from '../components/Modal';
-import { usePermissions } from '../hooks/useRBAC';
+import { usePermission, usePermissions } from '../hooks/useRBAC';
 import PageLoader from '../components/PageLoader';
 
 // ─── Demo fallback ────────────────────────────────────────────────────────────
@@ -15,9 +15,9 @@ const DEMO: HealthCenter[] = [
 
 const typeConfig: Record<string, { label: string; color: string }> = {
   health_center: { label: 'Health Center', color: 'bg-blue-100 text-blue-700' },
-  dispensary:    { label: 'Dispensary',    color: 'bg-purple-100 text-purple-700' },
-  hospital:      { label: 'Hospital',      color: 'bg-red-100 text-red-700' },
-  csps:          { label: 'CSPS',          color: 'bg-green-100 text-green-700' },
+  dispensary: { label: 'Dispensary', color: 'bg-purple-100 text-purple-700' },
+  hospital: { label: 'Hospital', color: 'bg-red-100 text-red-700' },
+  // csps:          { label: 'CSPS',          color: 'bg-green-100 text-green-700' },
 };
 
 const empty = {
@@ -36,6 +36,7 @@ export default function HealthCenters() {
   const [search, setSearch] = useState('');
   const [error, setError] = useState('');
 
+  const hasView = usePermission('health_centers:view');
   const perms = usePermissions(['health_centers:create', 'health_centers:edit', 'health_centers:delete']);
 
   const load = async () => {
@@ -90,22 +91,22 @@ export default function HealthCenters() {
       } else {
         // Offline: update local state only
         if (editItem) {
-          setCenters(prev => prev.map(c => c.id === editItem.id ? { 
-            ...c, 
-            ...form, 
+          setCenters(prev => prev.map(c => c.id === editItem.id ? {
+            ...c,
+            ...form,
             type: form.type as 'health_center' | 'dispensary' | 'hospital' | 'csps',
             status: form.status as 'active' | 'inactive'
           } : c));
         } else {
-          const newItem: HealthCenter = { 
-            id: `hc-local-${Date.now()}`, 
-            ...form, 
+          const newItem: HealthCenter = {
+            id: `hc-local-${Date.now()}`,
+            ...form,
             type: form.type as 'health_center' | 'dispensary' | 'hospital' | 'csps',
             status: form.status as 'active' | 'inactive',
-            createdAt: new Date().toISOString(), 
-            fridgesCount: 0, 
-            devicesCount: 0, 
-            vaccinesCount: 0 
+            createdAt: new Date().toISOString(),
+            fridgesCount: 0,
+            devicesCount: 0,
+            vaccinesCount: 0
           };
           setCenters(prev => [...prev, newItem]);
         }
@@ -131,6 +132,18 @@ export default function HealthCenters() {
   };
 
   const f = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }));
+
+  if (!hasView) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 p-8 text-center max-w-lg mx-auto my-12">
+        <div className="w-14 h-14 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Building2 size={28} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800">Access Denied</h2>
+        <p className="text-sm text-slate-500 mt-2">You do not have permission to view or manage Health Centers & Dispensaries. Please contact your administrator if you require access.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">

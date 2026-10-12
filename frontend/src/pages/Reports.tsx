@@ -3,6 +3,7 @@ import { FileBarChart2, Download, FileText, Thermometer, Droplets } from 'lucide
 import { api } from '../services/api';
 import { Device, SensorReading, HealthCenter, Fridge } from '../types';
 import PageLoader from '../components/PageLoader';
+import { usePermission, useHealthCenterScope } from '../hooks/useRBAC';
 
 export default function Reports() {
   const [devices, setDevices] = useState<Device[]>([]);
@@ -14,13 +15,17 @@ export default function Reports() {
   const [loading, setLoading] = useState(false);
   const [initLoading, setInitLoading] = useState(true);
 
+  const hcScope = useHealthCenterScope();
+  const hasView = usePermission('reports:view');
+
   useEffect(() => {
+    const effectiveHC = hcScope || undefined;
     Promise.all([
-      api.getDevices().then((d: any) => { setDevices(d); if (d.length > 0) setSelectedDevice(d[0].id); }),
+      api.getDevices({ healthCenterId: effectiveHC }).then((d: any) => { setDevices(d); if (d.length > 0) setSelectedDevice(d[0].id); }),
       api.getHealthCenters().then((d: any) => setCenters(d)),
-      api.getFridges().then((d: any) => setFridges(d)),
+      api.getFridges(effectiveHC).then((d: any) => setFridges(d)),
     ]).catch(console.error).finally(() => setInitLoading(false));
-  }, []);
+  }, [hcScope]);
 
   const generate = async () => {
     if (!selectedDevice) return;
@@ -107,6 +112,18 @@ export default function Reports() {
   const avgTemp  = data.length ? (data.reduce((s, r) => s + r.temperature, 0) / data.length).toFixed(1) : null;
   const maxTemp  = data.length ? Math.max(...data.map(r => r.temperature)).toFixed(1) : null;
   const avgHumid = data.length ? (data.reduce((s, r) => s + r.humidity, 0) / data.length).toFixed(1) : null;
+
+  if (!hasView) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 p-8 text-center max-w-lg mx-auto my-12">
+        <div className="w-14 h-14 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <FileBarChart2 size={28} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800">Access Denied</h2>
+        <p className="text-sm text-slate-500 mt-2">You do not have permission to view or generate reports. Please contact your administrator if you require access.</p>
+      </div>
+    );
+  }
 
   if (initLoading) return <PageLoader message="Loading report configuration..." />;
 

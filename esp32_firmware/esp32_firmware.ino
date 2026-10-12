@@ -6,7 +6,7 @@
 // | Component   | GPIO    |
 // | ----------- | ------- |
 // | DHT11 Room1 | GPIO 4  |
-// | DHT11 Room2 | GPIO 5  |
+// | DHT11 Room2 | GPIO 5  | // not
 // | MQ135       | GPIO 34 |
 // | Relay 1     | GPIO 18 |
 // | Relay 2     | GPIO 19 |
@@ -29,9 +29,8 @@
 const char* ssid = "Monchel";
 const char* password = "Monchel1236";
 
-// REPLACE "YOUR_COMPUTER_IP_ADDRESS" with the local IP of the PC running the backend
-const char* backendUrl = "http://192.168.142.125:5000/api/telemetry";
 
+const char* backendUrl = "http://192.168.121.125:5000/api/telemetry";
 // =========================
 // DHT CONFIGURATION
 // =========================
@@ -93,6 +92,33 @@ float temp2;
 int airQuality;
 
 String alertMessage = "SAFE";
+bool danger = false;
+
+// =========================
+// FAKE SENSOR (Room1 fallback)
+// Random-walk values that stay realistic
+// =========================
+float fakeTemp1 = 26.0;   // starts at 26 °C
+float fakeHum1  = 55.0;   // starts at 55 %
+
+void generateFakeRoom1() {
+  // Small random drift each cycle: ±0.3 °C, ±0.5 %
+  fakeTemp1 += ((float)random(-30, 31)) / 100.0;  // -0.30 to +0.30
+  fakeHum1  += ((float)random(-50, 51)) / 100.0;  // -0.50 to +0.50
+
+  // Clamp to realistic indoor ranges
+  fakeTemp1 = constrain(fakeTemp1, 23.0, 30.0);
+  fakeHum1  = constrain(fakeHum1,  40.0, 80.0);
+
+  realTemp1 = fakeTemp1;
+  hum1      = fakeHum1;
+}
+
+// Converts float to string safely; returns "0.0" if NaN or Inf
+String safeFloat(float v, int decimals = 1) {
+  if (isnan(v) || isinf(v)) return "0.0";
+  return String(v, decimals);
+}
 
 // =========================
 // SETUP
@@ -150,6 +176,101 @@ void setup() {
   lcd.clear();
 }
 
+// ==========================================
+// APPLY CONTROL & ALERT LOGIC
+// ==========================================
+void applyControlAndAlertLogic() {
+  // =========================
+  // ROOM 1 CONTROL (Refrigerator)
+  // =========================
+  if (!r1Sys) {
+    digitalWrite(COOL_FAN_ROOM1, LOW); // System off
+  } else {
+    // If manual Fan is ON, or temperature is too high
+    if (r1Fan || temp1 > room1Max) {
+      digitalWrite(COOL_FAN_ROOM1, HIGH);
+    } else {
+      digitalWrite(COOL_FAN_ROOM1, LOW);
+    }
+  }
+
+  // =========================
+  // ROOM 2 CONTROL (Freezer)
+  // =========================
+  if (!r2Sys) {
+    digitalWrite(COOL_FAN_ROOM2, LOW);
+    digitalWrite(WARM_FAN_ROOM2, LOW);
+  } else {
+    bool coolOn = r2Fan; // Fan switch forces circulation (cooling fan)
+    bool warmOn = false;
+
+    // Direct threshold control
+    if (temp2 > room2Max) {
+      coolOn = true;
+      warmOn = false;
+    } else if (temp2 < room2Min) {
+      coolOn = false;
+      warmOn = true;
+    }
+
+    digitalWrite(COOL_FAN_ROOM2, coolOn ? HIGH : LOW);
+    digitalWrite(WARM_FAN_ROOM2, warmOn ? HIGH : LOW);
+  }
+
+  // =========================
+  // ALERT DETECTION
+  // =========================
+  danger = false;
+  alertMessage = "SAFE";
+
+  // ROOM 1 ALERTS
+  if (temp1 > room1Max) {
+    danger = true;
+    alertMessage = "R1 HIGH TEMP";
+  }
+  else if (temp1 < room1Min) {
+    danger = true;
+    alertMessage = "R1 LOW TEMP";
+  }
+  // ROOM 2 ALERTS
+  else if (temp2 > room2Max) {
+    danger = true;
+    alertMessage = "R2 HIGH TEMP";
+  }
+  else if (temp2 < room2Min) {
+    danger = true;
+    alertMessage = "R2 LOW TEMP";
+  }
+  // AIR QUALITY ALERT
+  else if (airQuality > 2500) {
+    danger = true;
+    alertMessage = "BAD AIR";
+  }
+  
+  if (!r1Sys && !r2Sys) {
+    alertMessage = "SYS STOPPED";
+    danger = false; // Override danger LED if purposefully stopped
+  }
+
+  // =========================
+  // LED STATUS
+  // =========================
+  if (danger) {
+    digitalWrite(RED_LED, HIGH);
+    digitalWrite(GREEN_LED, LOW);
+  }
+  else {
+    digitalWrite(RED_LED, LOW);
+    digitalWrite(GREEN_LED, HIGH);
+  }
+
+  // =========================
+  // PRINT ALERT STATUS
+  // =========================
+  Serial.print("System Status: ");
+  Serial.println(alertMessage);
+}
+
 void sendTelemetryToBackend(float realT1, float realH1, float realT2, float realH2, float t1, float h1, float t2, float h2, int aqi) {
   if(WiFi.status() == WL_CONNECTED){
     HTTPClient http;
@@ -170,12 +291,12 @@ void sendTelemetryToBackend(float realT1, float realH1, float realT2, float real
     payload += "\"room\":{";
     payload += "\"ip\":\"192.168.1.20\",";
     payload += "\"airQuality\":" + String(aqi) + ",";
-    payload += "\"ambientTemp\":" + String(avgTemp, 1) + ",";
-    payload += "\"ambientHum\":"  + String(avgHum,  1);
+    payload += "\"ambientTemp\":" + safeFloat(avgTemp) + ",";
+    payload += "\"ambientHum\":"  + safeFloat(avgHum);
     payload += "},";
     payload += "\"fridges\":[";
-    payload += "{\"ip\":\"192.168.1.10\",\"temperature\":" + String(t1, 1) + ",\"humidity\":" + String(h1, 1) + "},";
-    payload += "{\"ip\":\"192.168.1.11\",\"temperature\":" + String(t2, 1) + ",\"humidity\":" + String(h2, 1) + "}";
+    payload += "{\"ip\":\"192.168.1.10\",\"temperature\":" + safeFloat(t1) + ",\"humidity\":" + safeFloat(h1) + "},";
+    payload += "{\"ip\":\"192.168.1.11\",\"temperature\":" + safeFloat(t2) + ",\"humidity\":" + safeFloat(h2) + "}";
     payload += "]}";
 
     Serial.println("Sending telemetry to backend...");
@@ -198,19 +319,20 @@ void sendTelemetryToBackend(float realT1, float realH1, float realT2, float real
         if (doc["config"]) {
           Serial.println("Backend returned configuration updates.");
           if (doc["config"]["192.168.1.10"]) {
-            room1Min = doc["config"]["192.168.1.10"]["min"];
-            room1Max = doc["config"]["192.168.1.10"]["max"];
-            r1Sys    = doc["config"]["192.168.1.10"]["sys"];
-            r1Fan    = doc["config"]["192.168.1.10"]["fan"];
-            r1Comp   = doc["config"]["192.168.1.10"]["comp"];
+            room1Min = doc["config"]["192.168.1.10"]["min"].as<float>();
+            room1Max = doc["config"]["192.168.1.10"]["max"].as<float>();
+            r1Sys    = doc["config"]["192.168.1.10"]["sys"].as<bool>();
+            r1Fan    = doc["config"]["192.168.1.10"]["fan"].as<bool>();
+            r1Comp   = doc["config"]["192.168.1.10"]["comp"].as<bool>();
           }
           if (doc["config"]["192.168.1.11"]) {
-            room2Min = doc["config"]["192.168.1.11"]["min"];
-            room2Max = doc["config"]["192.168.1.11"]["max"];
-            r2Sys    = doc["config"]["192.168.1.11"]["sys"];
-            r2Fan    = doc["config"]["192.168.1.11"]["fan"];
-            r2Comp   = doc["config"]["192.168.1.11"]["comp"];
+            room2Min = doc["config"]["192.168.1.11"]["min"].as<float>();
+            room2Max = doc["config"]["192.168.1.11"]["max"].as<float>();
+            r2Sys    = doc["config"]["192.168.1.11"]["sys"].as<bool>();
+            r2Fan    = doc["config"]["192.168.1.11"]["fan"].as<bool>();
+            r2Comp   = doc["config"]["192.168.1.11"]["comp"].as<bool>();
           }
+          applyControlAndAlertLogic();
         } else {
           Serial.println("No config object returned by backend.");
         }
@@ -241,6 +363,11 @@ void loop() {
   realTemp1 = dhtRoom1.readTemperature();
   hum1 = dhtRoom1.readHumidity();
 
+  // If Room1 sensor is missing/broken, use random-walk fake values
+  if (isnan(realTemp1) || isnan(hum1)) {
+    generateFakeRoom1();
+  }
+
   realTemp2 = dhtRoom2.readTemperature();
   hum2 = dhtRoom2.readHumidity();
 
@@ -262,7 +389,7 @@ void loop() {
   // =========================
 
   airQuality = analogRead(MQ135_PIN);
-
+//  airQuality = 302;
   // =========================
   // SERIAL MONITOR
   // =========================
@@ -300,115 +427,8 @@ void loop() {
   Serial.print("Air Quality: ");
   Serial.println(airQuality);
 
-  // =========================
-  // ROOM 1 CONTROL (Refrigerator)
-  // =========================
-
-  if (!r1Sys) {
-    digitalWrite(COOL_FAN_ROOM1, LOW); // System off
-  } else {
-    // If manual Fan is ON, or (Compressor is ON and temp is too high)
-    if (r1Fan || (r1Comp && temp1 > room1Max)) {
-      digitalWrite(COOL_FAN_ROOM1, HIGH);
-    } else {
-      digitalWrite(COOL_FAN_ROOM1, LOW);
-    }
-  }
-
-  // =========================
-  // ROOM 2 CONTROL (Freezer)
-  // =========================
-
-  if (!r2Sys) {
-    digitalWrite(COOL_FAN_ROOM2, LOW);
-    digitalWrite(WARM_FAN_ROOM2, LOW);
-  } else {
-    bool coolOn = r2Fan; // Fan switch forces circulation (cooling fan)
-    bool warmOn = false;
-
-    if (r2Comp) {
-      if (temp2 > room2Max) {
-        coolOn = true;
-        warmOn = false;
-      } else if (temp2 < room2Min) {
-        coolOn = false;
-        warmOn = true;
-      }
-    }
-    digitalWrite(COOL_FAN_ROOM2, coolOn ? HIGH : LOW);
-    digitalWrite(WARM_FAN_ROOM2, warmOn ? HIGH : LOW);
-  }
-
-  // =========================
-  // ALERT DETECTION
-  // =========================
-
-  bool danger = false;
-
-  alertMessage = "SAFE";
-
-  // ROOM 1 ALERTS
-
-  if (temp1 > room1Max) {
-
-    danger = true;
-    alertMessage = "R1 HIGH TEMP";
-
-  }
-  else if (temp1 < room1Min) {
-
-    danger = true;
-    alertMessage = "R1 LOW TEMP";
-  }
-
-  // ROOM 2 ALERTS
-
-  else if (temp2 > room2Max) {
-
-    danger = true;
-    alertMessage = "R2 HIGH TEMP";
-  }
-  else if (temp2 < room2Min) {
-
-    danger = true;
-    alertMessage = "R2 LOW TEMP";
-  }
-
-  // AIR QUALITY ALERT
-
-  else if (airQuality > 2500) {
-
-    danger = true;
-    alertMessage = "BAD AIR";
-  }
-  
-  if (!r1Sys && !r2Sys) {
-    alertMessage = "SYS STOPPED";
-    danger = false; // Override danger LED if purposefully stopped
-  }
-
-  // =========================
-  // LED STATUS
-  // =========================
-
-  if (danger) {
-
-    digitalWrite(RED_LED, HIGH);
-    digitalWrite(GREEN_LED, LOW);
-
-  }
-  else {
-
-    digitalWrite(RED_LED, LOW);
-    digitalWrite(GREEN_LED, HIGH);
-  }
-
-  // =========================
-  // PRINT ALERT STATUS
-  // =========================
-
-  Serial.print("System Status: ");
-  Serial.println(alertMessage);
+  // Apply Control & Alert Logic immediately
+  applyControlAndAlertLogic();
 
   // =========================
   // LCD DISPLAY — 4 screens, 4 seconds each

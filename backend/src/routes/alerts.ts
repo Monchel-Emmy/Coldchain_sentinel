@@ -18,6 +18,12 @@ router.get('/', requirePermission('alerts:view'), async (req, res) => {
 });
 
 router.patch('/:id/acknowledge', requirePermission('alerts:acknowledge'), async (req, res) => {
+  const hcFilter = getHCFilter(req as AuthRequest);
+  const existing = await Alert.findById(req.params.id).lean();
+  if (!existing) return res.status(404).json({ error: 'Alert not found' });
+  if (hcFilter && String(existing.healthCenterId) !== String(hcFilter)) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
   const alert = await Alert.findByIdAndUpdate(req.params.id, { acknowledged: true }, { new: true }).lean();
   if (!alert) return res.status(404).json({ error: 'Alert not found' });
   res.json({ ...alert, id: alert._id });

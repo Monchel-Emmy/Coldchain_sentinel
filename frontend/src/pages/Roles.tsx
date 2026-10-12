@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2, ShieldCheck } from 'lucide-react';
 import { api } from '../services/api';
 import { Role } from '../types';
 import Modal from '../components/Modal';
+import { usePermission, usePermissions } from '../hooks/useRBAC';
 
 export default function Roles() {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -10,6 +11,9 @@ export default function Roles() {
   const [showForm, setShowForm] = useState(false);
   const [editRole, setEditRole] = useState<Role | null>(null);
   const [form, setForm] = useState({ name: '', description: '', permissions: [] as string[] });
+
+  const hasView = usePermission('roles:view');
+  const perms = usePermissions(['roles:create', 'roles:edit', 'roles:delete']);
 
   const load = () => {
     api.getRoles().then((d: any) => setRoles(d)).catch(console.error);
@@ -54,6 +58,18 @@ export default function Roles() {
     return acc;
   }, {} as Record<string, string[]>);
 
+  if (!hasView) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 p-8 text-center max-w-lg mx-auto my-12">
+        <div className="w-14 h-14 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <ShieldCheck size={28} />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800">Access Denied</h2>
+        <p className="text-sm text-slate-500 mt-2">You do not have permission to view or manage User Roles & Access control. Please contact your administrator if you require access.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -61,9 +77,11 @@ export default function Roles() {
           <h1 className="text-xl font-bold text-slate-800">Roles & Access Control</h1>
           <p className="text-sm text-slate-500">Define roles and assign granular permissions</p>
         </div>
-        <button onClick={() => { setEditRole(null); setShowForm(true); }} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
-          <Plus size={16} /> Create Role
-        </button>
+        {perms['roles:create'] && (
+          <button onClick={() => { setEditRole(null); setShowForm(true); }} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
+            <Plus size={16} /> Create Role
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -80,8 +98,12 @@ export default function Roles() {
                 </div>
               </div>
               <div className="flex gap-1">
-                <button onClick={() => handleEdit(role)} className="p-1.5 rounded hover:bg-slate-100 text-slate-600"><Pencil size={14} /></button>
-                <button onClick={() => handleDelete(role.id)} className="p-1.5 rounded hover:bg-red-50 text-red-500"><Trash2 size={14} /></button>
+                {perms['roles:edit'] && (
+                  <button onClick={() => handleEdit(role)} className="p-1.5 rounded hover:bg-slate-100 text-slate-600"><Pencil size={14} /></button>
+                )}
+                {perms['roles:delete'] && (
+                  <button onClick={() => handleDelete(role.id)} className="p-1.5 rounded hover:bg-red-50 text-red-500"><Trash2 size={14} /></button>
+                )}
               </div>
             </div>
             {role.description && <p className="text-sm text-slate-500 mb-3">{role.description}</p>}

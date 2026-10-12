@@ -96,17 +96,36 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   const { name, healthCenterId, ipAddress } = req.body;
   if (!name || !healthCenterId) return res.status(400).json({ error: 'Name and healthCenterId are required' });
+  const hcFilter = getHCFilter(req as AuthRequest);
+  if (hcFilter && healthCenterId !== hcFilter) {
+    return res.status(403).json({ error: 'Cannot create storage room in another health center' });
+  }
   const room = await StorageRoom.create({ name, healthCenterId, ipAddress: ipAddress || '' });
   res.status(201).json({ ...room.toObject(), id: room._id });
 });
 
 router.put('/:id', async (req, res) => {
+  const hcFilter = getHCFilter(req as AuthRequest);
+  const existing = await StorageRoom.findById(req.params.id).lean();
+  if (!existing) return res.status(404).json({ error: 'Room not found' });
+  if (hcFilter && String(existing.healthCenterId) !== String(hcFilter)) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  if (hcFilter && req.body.healthCenterId && req.body.healthCenterId !== hcFilter) {
+    return res.status(403).json({ error: 'Cannot assign to another health center' });
+  }
   const room = await StorageRoom.findByIdAndUpdate(req.params.id, req.body, { new: true }).lean();
   if (!room) return res.status(404).json({ error: 'Room not found' });
   res.json({ ...room, id: room._id });
 });
 
 router.delete('/:id', async (req, res) => {
+  const hcFilter = getHCFilter(req as AuthRequest);
+  const existing = await StorageRoom.findById(req.params.id).lean();
+  if (!existing) return res.status(404).json({ error: 'Room not found' });
+  if (hcFilter && String(existing.healthCenterId) !== String(hcFilter)) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
   await StorageRoom.findByIdAndDelete(req.params.id);
   res.json({ success: true });
 });

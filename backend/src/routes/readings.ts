@@ -1,15 +1,18 @@
 import { Router } from 'express';
 import { Device as DeviceModel } from '../models/Device';
 import { SensorReading as SensorReadingModel } from '../models/SensorReading';
-import { authenticate } from '../middleware/auth';
+import { Fridge as FridgeModel } from '../models/Fridge';
+import { authenticate, getHCFilter, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 router.use(authenticate);
 
 // Latest reading per device (one per device, most recent)
-router.get('/latest', async (_req, res) => {
+router.get('/latest', async (req: AuthRequest, res) => {
   try {
-    const devices = await DeviceModel.find().lean();
+    const hcFilter = getHCFilter(req);
+    const query = hcFilter ? { healthCenterId: hcFilter } : {};
+    const devices = await DeviceModel.find(query).lean();
     const results = await Promise.all(devices.map(async dev => {
       const reading = await SensorReadingModel
         .findOne({ deviceId: dev._id })
@@ -34,8 +37,16 @@ router.get('/latest', async (_req, res) => {
 });
 
 // History for a specific device
-router.get('/history/:deviceId', async (req, res) => {
+router.get('/history/:deviceId', async (req: AuthRequest, res) => {
   try {
+    const hcFilter = getHCFilter(req);
+    if (hcFilter) {
+      const dev = await DeviceModel.findById(req.params.deviceId).lean();
+      if (!dev || String(dev.healthCenterId) !== String(hcFilter)) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+    }
+
     const hours  = parseInt(req.query.hours as string) || 24;
     const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
 
@@ -60,8 +71,16 @@ router.get('/history/:deviceId', async (req, res) => {
 });
 
 // History for a fridge (looks up device first)
-router.get('/fridge/:fridgeId', async (req, res) => {
+router.get('/fridge/:fridgeId', async (req: AuthRequest, res) => {
   try {
+    const hcFilter = getHCFilter(req);
+    if (hcFilter) {
+      const fridge = await FridgeModel.findById(req.params.fridgeId).lean();
+      if (!fridge || String(fridge.healthCenterId) !== String(hcFilter)) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+    }
+
     const hours  = parseInt(req.query.hours as string) || 24;
     const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
 

@@ -23,6 +23,7 @@ import userRoutes from './routes/users';
 import roleRoutes from './routes/roles';
 import predictionRoutes from './routes/predictions';
 import telemetryRoutes from './routes/telemetry';
+import aiRoutes from './routes/ai';
 
 import { Device as DeviceModel } from './models/Device';
 import { SensorReading as SensorReadingModel } from './models/SensorReading';
@@ -87,6 +88,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/predictions', predictionRoutes);
 app.use('/api/telemetry', telemetryRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.get('/api/health', (_req, res) => res.json({
   status: 'ok',
